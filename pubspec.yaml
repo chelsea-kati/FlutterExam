@@ -35,6 +35,11 @@ dependencies:
   sqflite_common_ffi: ^2.3.0  # Or the latest version
   http: ^1.1.0 # #Sert à faire des requêtes HTTP vers des API (GET, POST, PUT, DELETE).
   connectivity_plus: ^5.0.0  # Pour vérifier la connexion internet
+  async: ^2.11.0 # Pour la fonction Debouncer
+  debounce_throttle: ^2.0.0
+  
+  #flutter pub add debounce_throttle: ^1.0.3 # Pour la fonction Debouncer"
+
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.

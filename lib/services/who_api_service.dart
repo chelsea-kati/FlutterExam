@@ -4,7 +4,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:connectivity_plus/connectivity_plus.dart';
 import '../models/country_stats.dart';
-import '../models/patient.dart'; 
+import '../models/patient.dart';
 
 class WHOApiService {
   static const String _baseUrl = 'https://ghoapi.azureedge.net/api';
@@ -36,7 +36,8 @@ class WHOApiService {
         age: 45,
         pays: 'Burundi',
         maladie: 'Cancer du poumon',
-        conseils: 'Manger équilibré, faire de l\'exercice, suivre le traitement',
+        conseils:
+            'Manger équilibré, faire de l\'exercice, suivre le traitement',
         derniereVisite: DateTime.now().subtract(const Duration(days: 2)),
       ),
       Patient(
@@ -134,15 +135,18 @@ class WHOApiService {
           try {
             final stat = CountryStats.fromWHOJson(item);
             // Convertir le code pays en nom lisible
-            final readableName = _countryNames[stat.countryCode] ?? stat.countryCode;
-            stats.add(CountryStats(
-              countryCode: stat.countryCode,
-              countryName: readableName,
-              value: stat.value,
-              year: stat.year,
-              indicator: stat.indicator,
-              lastUpdated: stat.lastUpdated,
-            ));
+            final readableName =
+                _countryNames[stat.countryCode] ?? stat.countryCode;
+            stats.add(
+              CountryStats(
+                countryCode: stat.countryCode,
+                countryName: readableName,
+                value: stat.value,
+                year: stat.year,
+                indicator: stat.indicator,
+                lastUpdated: stat.lastUpdated,
+              ),
+            );
           } catch (e) {
             print('Erreur parsing item: $e');
           }
@@ -167,7 +171,7 @@ class WHOApiService {
         countryCode: 'BDI',
         countryName: 'Burundi',
         value: 145.0,
-        year: 2023,
+        year: 2025,
         indicator: 'NCDMORT3070',
         lastUpdated: DateTime.now(),
       ),
@@ -175,7 +179,7 @@ class WHOApiService {
         countryCode: 'RWA',
         countryName: 'Rwanda',
         value: 178.0,
-        year: 2023,
+        year: 2025,
         indicator: 'NCDMORT3070',
         lastUpdated: DateTime.now(),
       ),
@@ -183,7 +187,7 @@ class WHOApiService {
         countryCode: 'KEN',
         countryName: 'Kenya',
         value: 234.0,
-        year: 2023,
+        year: 2025,
         indicator: 'NCDMORT3070',
         lastUpdated: DateTime.now(),
       ),
@@ -191,7 +195,7 @@ class WHOApiService {
         countryCode: 'TZA',
         countryName: 'Tanzania',
         value: 189.0,
-        year: 2023,
+        year: 2025,
         indicator: 'NCDMORT3070',
         lastUpdated: DateTime.now(),
       ),
@@ -199,7 +203,7 @@ class WHOApiService {
         countryCode: 'UGA',
         countryName: 'Uganda',
         value: 167.0,
-        year: 2023,
+        year: 2025,
         indicator: 'NCDMORT3070',
         lastUpdated: DateTime.now(),
       ),
@@ -207,7 +211,7 @@ class WHOApiService {
         countryCode: 'ETH',
         countryName: 'Ethiopia',
         value: 156.0,
-        year: 2023,
+        year: 2025,
         indicator: 'NCDMORT3070',
         lastUpdated: DateTime.now(),
       ),
@@ -215,7 +219,7 @@ class WHOApiService {
         countryCode: 'SOM',
         countryName: 'Somalia',
         value: 198.0,
-        year: 2023,
+        year: 2025,
         indicator: 'NCDMORT3070',
         lastUpdated: DateTime.now(),
       ),
@@ -223,7 +227,7 @@ class WHOApiService {
         countryCode: 'SSD',
         countryName: 'South Sudan',
         value: 212.0,
-        year: 2023,
+        year: 2025,
         indicator: 'NCDMORT3070',
         lastUpdated: DateTime.now(),
       ),
@@ -231,7 +235,7 @@ class WHOApiService {
         countryCode: 'COD',
         countryName: 'DR Congo',
         value: 176.0,
-        year: 2023,
+        year: 2025,
         indicator: 'NCDMORT3070',
         lastUpdated: DateTime.now(),
       ),
@@ -239,7 +243,7 @@ class WHOApiService {
         countryCode: 'MOZ',
         countryName: 'Mozambique',
         value: 203.0,
-        year: 2023,
+        year: 2025,
         indicator: 'NCDMORT3070',
         lastUpdated: DateTime.now(),
       ),

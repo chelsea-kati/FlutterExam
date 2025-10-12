@@ -7,6 +7,9 @@ import '../services/db_service.dart';
 import '../pages/patient_detail.dart';
 import '../models/country_stats.dart';
 import '../services/who_api_service.dart';
+import 'package:async/async.dart'; // 💡 1. Import pour le Debouncer
+import 'package:debounce_throttle/debounce_throttle.dart' as dt;
+import '../utils/debouncer.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -23,6 +26,13 @@ class _HomePageState extends State<HomePage> {
   List<CountryStats> _whoStats = [];
   bool _isOnline = true;
   DateTime? _lastSyncDate;
+
+  final Debouncer _debouncer = Debouncer(delay: Duration(milliseconds: 500));
+  // 👈 Ajoutez une valeur initiale vide);
+  // 💡 NOUVEAU : Contrôleur pour le champ de recherche
+  final TextEditingController _searchController = TextEditingController(
+    text: '',
+  );
 
   // Map des drapeaux pour chaque pays
   final Map<String, String> _countryFlags = {
@@ -118,6 +128,39 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  // 💡 NOUVELLE FONCTION : Gestion de la recherche avec Debouncer
+  void _onSearchChanged(String query) {
+    // Annule la recherche précédente et planifie la nouvelle
+    _debouncer.run(() async {
+      if (query.isEmpty) {
+        // Si la recherche est vide, on recharge la liste complète
+        await _loadPatients();
+        return;
+      }
+
+      setState(() {
+        _isLoading = true; // Afficher l'indicateur de chargement
+      });
+
+      // Appel de la recherche après le délai de 500ms
+      final results = await DatabaseService.instance.searchPatients(query);
+
+      if (mounted) {
+        setState(() {
+          _patients = results; // Met à jour la liste des patients affichée
+          _isLoading = false;
+        });
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose(); // 💡 NOUVEAU : Nettoyage du contrôleur
+    _debouncer.dispose(); // 💡 NOUVEAU : Nettoyage du Debouncer
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -207,7 +250,39 @@ class _HomePageState extends State<HomePage> {
                       ),
 
                       const SizedBox(height: 20),
+                      TextField(
+                        controller: _searchController,
+                        decoration: InputDecoration(
+                          labelText:
+                              'Rechercher un patient (Nom, Prénom ou Maladie)...',
+                          hintText: 'Ex: John Doe, Cancer du sein',
+                          prefixIcon: const Icon(
+                            Icons.search,
+                            color: AppColors.primary,
+                          ),
+                          suffixIcon: IconButton(
+                            icon: const Icon(Icons.clear),
+                            onPressed: () {
+                              _searchController.clear();
+                              _onSearchChanged(
+                                '',
+                              ); // Réaffiche la liste complète
+                            },
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide.none,
+                          ),
+                          filled: true,
+                          fillColor: AppColors.surfaceVariant.withOpacity(0.5),
+                        ),
+                        onChanged:
+                            _onSearchChanged, // <-- Le lien vers la fonction debouncée
+                      ),
 
+                      const SizedBox(
+                        height: 20,
+                      ), // Espace après le champ de recherche
                       // Section Aperçu
                       Text(
                         'Aperçu Général',
@@ -503,7 +578,7 @@ class _HomePageState extends State<HomePage> {
                               }).toList(),
                             ),
 
-                      const SizedBox(height: 80),
+                      const SizedBox(height: 40),
                     ],
                   ),
                 ),
