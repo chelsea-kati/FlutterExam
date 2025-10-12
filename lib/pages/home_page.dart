@@ -5,7 +5,6 @@ import '../widgets/patient_card.dart';
 import '../models/patient.dart';
 import '../services/db_service.dart';
 import '../pages/patient_detail.dart';
-import '../services/sync_service.dart';
 import '../models/country_stats.dart';
 import '../services/who_api_service.dart';
 
@@ -17,8 +16,6 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  int _currentIndex = 0;
-
   // Variables pour les données dynamiques
   List<Patient> _patients = [];
   int _patientCount = 0;
@@ -47,87 +44,76 @@ class _HomePageState extends State<HomePage> {
     _initializeData();
   }
 
-  // Méthode centralisée pour initialiser toutes les données
+  // Méthode centralisée simplifiée
   Future<void> _initializeData() async {
-    await _checkConnectionAndLoad();
-    await _loadWhoStats(); // Maintenant avec await
-    DatabaseService.instance.debugPrintAllData();
-  }
+    setState(() {
+      _isLoading = true;
+    });
 
-  Future<void> _checkConnectionAndLoad() async {
     try {
-      final hasInternet = await WHOApiService.instance.hasInternetConnection();
-      setState(() {
-        _isOnline = hasInternet;
-      });
-      
-      if (hasInternet) {
-        final apiPatients = await WHOApiService.instance.getPatients();
+      // 1. Vérifier connexion
+      _isOnline = await WHOApiService.instance.hasInternetConnection();
+
+      // 2. Charger patients depuis SQLite
+      await _loadPatients();
+
+      // 3. Charger stats WHO (avec fallback intégré dans WHOApiService)
+      await _loadWhoStats();
+
+      // 4. Debug
+      await DatabaseService.instance.debugPrintAllData();
+    } catch (e) {
+      print('❌ Erreur initialisation: $e');
+    } finally {
+      if (mounted) {
         setState(() {
-          _patients = apiPatients;
-          _patientCount = apiPatients.length;
           _isLoading = false;
-          _lastSyncDate = DateTime.now();
         });
-      } else {
-        await _loadData();
-        if (_patients.isNotEmpty) {
-          setState(() {
-            _lastSyncDate = _patients.first.dateCreation;
-          });
-        }
       }
-    } catch (e) {
-      print('❌ Erreur de connexion ou chargement: $e');
-      await _loadData();
     }
   }
 
-  Future<void> _loadWhoStats() async {
-    try {
-      print('🔄 Début chargement statistiques WHO...');
-      final syncService = SyncService.instance;
-      final stats = await syncService.getStats();
-      
-      print('📊 Statistiques brutes reçues: ${stats.length}');
-      for (var stat in stats) {
-        print('  - ${stat.countryName}: ${stat.value}');
-      }
-
-      setState(() {
-        _whoStats = stats.take(10).toList();
-      });
-      
-      print('✅ ${_whoStats.length} statistiques affichées');
-    } catch (e) {
-      print('❌ Erreur chargement stats WHO: $e');
-      setState(() {
-        _whoStats = [];
-      });
-    }
-  }
-
-  // Charger les données depuis SQLite
-  Future<void> _loadData() async {
+  // Charger les patients depuis SQLite uniquement
+  Future<void> _loadPatients() async {
     try {
       final dbService = DatabaseService.instance;
       final patients = await dbService.getAllPatients();
       final count = await dbService.getPatientCount();
-      print('DEBUG: Nombre de patients lu depuis la DB: $count');
+
+      print('📊 $count patients chargés depuis SQLite');
 
       setState(() {
         _patients = patients;
         _patientCount = count;
-        _isLoading = false;
+        _lastSyncDate = patients.isNotEmpty
+            ? patients.first.dateCreation
+            : null;
       });
-      
-      for (final patient in _patients) {
-        print('Patient: ${patient.nomComplet}, Maladie: ${patient.maladie}');
-      }
     } catch (e) {
-      print('❌ Erreur lors du chargement des données: $e');
+      print('❌ Erreur chargement patients: $e');
+    }
+  }
+
+  // Charger stats WHO (appel direct, fallback intégré)
+  Future<void> _loadWhoStats() async {
+    try {
+      print('🔄 Chargement statistiques WHO...');
+
+      // Appel direct à WHOApiService qui gère déjà le fallback
+      final stats = await WHOApiService.instance.getCancerStatsByCountry();
+
+      print('✅ ${stats.length} pays chargés');
+      print(
+        '📊 Source: ${stats.first.lastUpdated.difference(DateTime.now()).inSeconds < 5 ? "API WHO" : "Cache/Test"}',
+      );
+
       setState(() {
-        _isLoading = false;
+        _whoStats = stats;
+      });
+    } catch (e) {
+      print('❌ Erreur stats WHO: $e');
+      setState(() {
+        _whoStats = [];
       });
     }
   }
@@ -146,23 +132,23 @@ class _HomePageState extends State<HomePage> {
             Text(
               AppConstants.appName,
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    color: AppColors.textOnPrimary,
-                    fontWeight: FontWeight.bold,
-                  ),
+                color: AppColors.textOnPrimary,
+                fontWeight: FontWeight.bold,
+              ),
             ),
             Text(
               AppConstants.appSlogan,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: AppColors.textOnPrimary.withOpacity(0.9),
-                  ),
+                color: AppColors.textOnPrimary.withOpacity(0.9),
+              ),
             ),
             if (!_isOnline && _lastSyncDate != null)
               Text(
                 'Données du ${_lastSyncDate!.toLocal().toString().split(' ')[0]} (hors-ligne)',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Colors.red,
-                      fontStyle: FontStyle.italic,
-                    ),
+                  color: Colors.red,
+                  fontStyle: FontStyle.italic,
+                ),
               ),
           ],
         ),
@@ -212,9 +198,7 @@ class _HomePageState extends State<HomePage> {
                             Expanded(
                               child: Text(
                                 "Bienvenue ! Suivi personnalisé pour vos patients",
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodyMedium
+                                style: Theme.of(context).textTheme.bodyMedium
                                     ?.copyWith(fontWeight: FontWeight.w600),
                               ),
                             ),
@@ -227,9 +211,7 @@ class _HomePageState extends State<HomePage> {
                       // Section Aperçu
                       Text(
                         'Aperçu Général',
-                        style: Theme.of(context)
-                            .textTheme
-                            .headlineSmall
+                        style: Theme.of(context).textTheme.headlineSmall
                             ?.copyWith(fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: AppSizes.paddingM),
@@ -270,7 +252,7 @@ class _HomePageState extends State<HomePage> {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
                                   content: Text(
-                                    'Consultations du jour - En développement!',
+                                    'Consultations - En développement!',
                                   ),
                                   duration: Duration(seconds: 2),
                                 ),
@@ -287,7 +269,7 @@ class _HomePageState extends State<HomePage> {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
                                   content: Text(
-                                    'Suivi mental - Fonctionnalité bientôt disponible!',
+                                    'Suivi mental - Bientôt disponible!',
                                   ),
                                   duration: Duration(seconds: 2),
                                 ),
@@ -303,9 +285,7 @@ class _HomePageState extends State<HomePage> {
                             onTap: () {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
-                                  content: Text(
-                                    'Gestion des urgences - En cours de développement!',
-                                  ),
+                                  content: Text('Urgences - En développement!'),
                                   duration: Duration(seconds: 2),
                                 ),
                               );
@@ -322,9 +302,7 @@ class _HomePageState extends State<HomePage> {
                         children: [
                           Text(
                             'Patients Récents',
-                            style: Theme.of(context)
-                                .textTheme
-                                .headlineSmall
+                            style: Theme.of(context).textTheme.headlineSmall
                                 ?.copyWith(fontWeight: FontWeight.bold),
                           ),
                           TextButton(
@@ -337,7 +315,7 @@ class _HomePageState extends State<HomePage> {
                       ),
                       const SizedBox(height: AppSizes.paddingM),
 
-                      // Liste des patients récents
+                      // Liste des patients
                       _patients.isEmpty
                           ? const Center(
                               child: Padding(
@@ -360,7 +338,7 @@ class _HomePageState extends State<HomePage> {
                                   name: patient.nomComplet,
                                   condition: patient.maladie,
                                   lastVisit: patient.derniereVisite != null
-                                      ? '${DateTime.now().difference(patient.derniereVisite!).inDays} jour(s)'
+                                      ? 'Il y a ${DateTime.now().difference(patient.derniereVisite!).inDays} jour(s)'
                                       : 'Première visite',
                                   status: patient.statut,
                                   onTap: () {
@@ -378,17 +356,15 @@ class _HomePageState extends State<HomePage> {
 
                       const SizedBox(height: AppSizes.paddingXL),
 
-                      // Section Statistiques par pays avec drapeaux
+                      // Section Statistiques par pays
                       Text(
                         'Statistiques par Pays',
-                        style: Theme.of(context)
-                            .textTheme
-                            .headlineSmall
+                        style: Theme.of(context).textTheme.headlineSmall
                             ?.copyWith(fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: AppSizes.paddingM),
 
-                      // Affichage des statistiques WHO avec drapeaux
+                      // Affichage stats WHO
                       _whoStats.isEmpty
                           ? Center(
                               child: Padding(
@@ -402,28 +378,20 @@ class _HomePageState extends State<HomePage> {
                                     ),
                                     const SizedBox(height: 10),
                                     Text(
-                                      'Aucune statistique WHO disponible.',
+                                      'Aucune statistique disponible',
                                       style: TextStyle(
                                         color: Colors.grey[600],
                                         fontSize: 14,
                                       ),
                                     ),
-                                    if (!_isOnline)
-                                      Text(
-                                        'Mode hors-ligne',
-                                        style: TextStyle(
-                                          color: Colors.red[400],
-                                          fontSize: 12,
-                                          fontStyle: FontStyle.italic,
-                                        ),
-                                      ),
                                   ],
                                 ),
                               ),
                             )
                           : Column(
                               children: _whoStats.map((stat) {
-                                final flag = _countryFlags[stat.countryName] ?? '🌍';
+                                final flag =
+                                    _countryFlags[stat.countryName] ?? '🌍';
                                 return Card(
                                   elevation: 2,
                                   margin: const EdgeInsets.only(bottom: 12),
@@ -442,7 +410,6 @@ class _HomePageState extends State<HomePage> {
                                           children: [
                                             Row(
                                               children: [
-                                                // Drapeau du pays
                                                 Container(
                                                   width: 50,
                                                   height: 50,
@@ -450,7 +417,9 @@ class _HomePageState extends State<HomePage> {
                                                     color: AppColors.primary
                                                         .withOpacity(0.1),
                                                     borderRadius:
-                                                        BorderRadius.circular(12),
+                                                        BorderRadius.circular(
+                                                          12,
+                                                        ),
                                                   ),
                                                   child: Center(
                                                     child: Text(
@@ -488,9 +457,9 @@ class _HomePageState extends State<HomePage> {
                                             Container(
                                               padding:
                                                   const EdgeInsets.symmetric(
-                                                horizontal: 12,
-                                                vertical: 6,
-                                              ),
+                                                    horizontal: 12,
+                                                    vertical: 6,
+                                                  ),
                                               decoration: BoxDecoration(
                                                 color: AppColors.primary
                                                     .withOpacity(0.1),
@@ -509,10 +478,10 @@ class _HomePageState extends State<HomePage> {
                                           ],
                                         ),
                                         const SizedBox(height: 12),
-                                        // Barre de progression
                                         ClipRRect(
-                                          borderRadius:
-                                              BorderRadius.circular(10),
+                                          borderRadius: BorderRadius.circular(
+                                            10,
+                                          ),
                                           child: LinearProgressIndicator(
                                             value: (stat.value / 300).clamp(
                                               0.0,
@@ -522,8 +491,8 @@ class _HomePageState extends State<HomePage> {
                                                 AppColors.surfaceVariant,
                                             valueColor:
                                                 AlwaysStoppedAnimation<Color>(
-                                              AppColors.primary,
-                                            ),
+                                                  AppColors.primary,
+                                                ),
                                             minHeight: 8,
                                           ),
                                         ),
@@ -534,7 +503,6 @@ class _HomePageState extends State<HomePage> {
                               }).toList(),
                             ),
 
-                      // Espacement pour le FAB
                       const SizedBox(height: 80),
                     ],
                   ),
@@ -578,11 +546,14 @@ class PatientCard extends StatelessWidget {
         trailing: Text(
           status,
           style: TextStyle(
-            color: status == 'Critique'
+            color:
+                status ==
+                    'A revoir' // Le plus ancien/critique
                 ? Colors.red
                 : status == 'Stable'
-                    ? Colors.orange
-                    : Colors.green,
+                ? Colors
+                      .orange // A surveiller (7-30 jours)
+                : Colors.green, // Nouveau/Récent (0-7 jours)
             fontWeight: FontWeight.bold,
           ),
         ),

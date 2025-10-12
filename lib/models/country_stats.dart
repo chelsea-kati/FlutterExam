@@ -27,7 +27,8 @@ class CountryStats {
       value: map['value'] as double,
       year: map['year'] as int,
       indicator: map['indicator'] as String,
- lastUpdated: DateTime.now(),    );
+      lastUpdated: DateTime.parse(map['lastUpdated']),
+    );
   }
 
   // Convertir l'objet CountryStats en Map pour l'insertion/mise à jour dans la DB
@@ -39,10 +40,12 @@ class CountryStats {
       'value': value,
       'year': year,
       'indicator': indicator,
-      'lastUpdated': lastUpdated,
+      'lastUpdated': lastUpdated
+          .toIso8601String(), // ⚠️ Rappel : Stocker au format ISO8601 pour DB
     };
   }
-    factory CountryStats.fromWHOJson(Map<String, dynamic> json) {
+
+  factory CountryStats.fromWHOJson(Map<String, dynamic> json) {
     return CountryStats(
       countryCode: json['SpatialDim'] ?? '',
       countryName: json['SpatialDimValueCode'] ?? '',

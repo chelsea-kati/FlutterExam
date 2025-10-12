@@ -52,7 +52,7 @@ class Patient {
           ? DateTime.parse(map['dateCreation'])
           : DateTime.now(),
       derniereVisite: map['derniereVisite'] != null
-          ? DateTime.parse(map['dateCreation'])
+          ? DateTime.parse(map['derniereVisite'])
           : null,
     );
   }

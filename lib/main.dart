@@ -8,6 +8,8 @@ import 'pages/home_page.dart';
 import 'widgets/placeholder_page.dart'; // Nouveau widget
 import 'widgets/metric_card.dart';
 import 'pages/add_patient.dart';
+import 'pages/statistics_page.dart';
+
 //  import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 // You import sqflite_common_ffi to initialize the database engine for your platform.
 //This is the part that fixes the Bad state: databaseFactory not initialized error.
@@ -108,42 +110,39 @@ class _MainNavigationState extends State<MainNavigation> {
       ),
 
       // Bouton flottant global
-      floatingActionButton:
-          _currentIndex == 0
-              ? FloatingActionButton(
-                  onPressed: () async {
-                    final result = await Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const AddPatientPage(),
-                      ),
-                    );
-                    if (result == true && mounted) {
-                      setState(() {}); // Force le rebuild, HomePage va recharger les données
-                    }
-                  },
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: AppColors.textOnPrimary,
-                  child: const Icon(Icons.add_rounded),
-                )
-              : null,
+      floatingActionButton: _currentIndex == 0
+          ? FloatingActionButton(
+              onPressed: () async {
+                final result = await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const AddPatientPage(),
+                  ),
+                );
+                if (result == true && mounted) {
+                  setState(
+                    () {},
+                  ); // Force le rebuild, HomePage va recharger les données
+                }
+              },
+              backgroundColor: AppColors.primary,
+              foregroundColor: AppColors.textOnPrimary,
+              child: const Icon(Icons.add_rounded),
+            )
+          : null,
     );
   }
 }
 
-// Pages optimisées avec le nouveau widget PlaceholderPage
-class StatisticsPage extends StatelessWidget {
-  const StatisticsPage({super.key});
+//  MISE À JOUR DES PAGES : UTILISATION DE LA VRAIE PAGE
+// // Renommée pour éviter le conflit avec la classe StatisticsPage de votre fichier statistics_page.dart
+class ActualStatisticsPage  extends StatelessWidget {
+  const ActualStatisticsPage ({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return PlaceholderPage(
-      title: AppStrings.statistics,
-      icon: Icons.analytics_rounded,
-      mainText: 'Statistiques détaillées',
-      subtitle: 'Graphiques et métriques avancées',
-      showAppBar: true,
-    );
+    // 💡 Retourne la page implémentée dans lib/pages/statistics_page.dart
+    return const StatisticsPage();
   }
 }
 
