@@ -6,7 +6,7 @@ import '../services/db_service.dart'; // Pour récupérer les données agrégée
 import '../widgets/metric_card.dart';
 import '../models/country_stats.dart';
 import '../widgets/bar_chart_card.dart';
-
+import 'package:intl/intl.dart'; // 👈 NOUVEAU : Pour formater la date
 
 // Assurez-vous d'avoir les constantes AppColors et AppSizes
 // class AppColors {
@@ -31,6 +31,9 @@ class _StatisticsPageState extends State<StatisticsPage> {
   // Stockage des résultats des requêtes DB
   List<Map<String, dynamic>> patientsByCountry = [];
   List<Map<String, dynamic>> patientsByDisease = [];
+  // 👈 AJOUTEZ CECI
+  DateTime? _lastWhoSyncDate;
+  int _uniqueCountryStatsCount = 0;
 
   bool isLoading = true;
 
@@ -47,13 +50,36 @@ class _StatisticsPageState extends State<StatisticsPage> {
     });
 
     try {
-    final List<Map<String, dynamic>> countryData = await DatabaseService.instance.getPatientsByCountry();
-    final List<Map<String, dynamic>> diseaseData = await DatabaseService.instance.getPatientsByDisease();
+      final List<Map<String, dynamic>> countryData = await DatabaseService
+          .instance
+          .getPatientsByCountry();
+      final List<Map<String, dynamic>> diseaseData = await DatabaseService
+          .instance
+          .getPatientsByDisease();
+      // 💡 NOUVEAU : Récupérer les stats de l'OMS
+      final List<CountryStats> whoStats = await DatabaseService.instance
+          .getCountryStats();
 
       if (mounted) {
         setState(() {
           patientsByCountry = countryData;
           patientsByDisease = diseaseData;
+          // Calculer les métadonnées WHO
+          if (whoStats.isNotEmpty) {
+            // Trouver la date de mise à jour la plus récente (s'assurer qu'elle est un DateTime)
+            final lastUpdatedStat = whoStats.reduce(
+              (a, b) => a.lastUpdated.isAfter(b.lastUpdated) ? a : b,
+            );
+
+            _lastWhoSyncDate = lastUpdatedStat.lastUpdated;
+
+            // Compter le nombre de codes pays uniques mis à jour
+            _uniqueCountryStatsCount = whoStats
+                .map((s) => s.countryCode)
+                .toSet()
+                .length;
+          }
+
           isLoading = false;
         });
       }
@@ -92,13 +118,15 @@ class _StatisticsPageState extends State<StatisticsPage> {
                     // Graphique 1 : Patients par Maladie
                     _buildSectionTitle('Patients par Maladie'),
                     patientsByDisease.isEmpty
-                        ? const Center(child: Text('Aucune donnée maladie disponible.'))
+                        ? const Center(
+                            child: Text('Aucune donnée maladie disponible.'),
+                          )
                         // REMPLACER PAR LE BAR CHART
                         : BarChartCard(
                             labelKey: 'maladie',
                             data: patientsByDisease,
-                        ),
-                       const SizedBox(height: AppSizes.paddingXL),
+                          ),
+                    const SizedBox(height: AppSizes.paddingXL),
 
                     // Graphique 2 : Patients par Pays
                     _buildSectionTitle('Patients par Pays'),
@@ -107,7 +135,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
                         : BarChartCard(
                             labelKey: 'pays',
                             data: patientsByCountry,
-                        ),
+                          ),
 
                     const SizedBox(height: AppSizes.paddingXL),
 
@@ -209,19 +237,34 @@ class _StatisticsPageState extends State<StatisticsPage> {
   Widget _buildWhoStats() {
     // NOTE: Pour une démonstration MVP, nous allons simuler les données ou utiliser
     // la dernière entrée de la table 'country_stats'.
+    // Formater la date
+    final String syncDateText = _lastWhoSyncDate != null
+        ? DateFormat('dd/MM/yyyy à HH:mm').format(_lastWhoSyncDate!)
+        : 'Jamais synchronisé';
+
+    final bool isSynced = _lastWhoSyncDate != null;
 
     // Pour l'MVP, affichons un statut simple :
     return Card(
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       color: Colors.lightGreen.shade50,
-      child: const ListTile(
-        leading: Icon(Icons.sync_alt, color: Colors.green),
+      child: ListTile(
+        leading: Icon(
+          isSynced ? Icons.sync_alt : Icons.warning_amber,
+          color: isSynced ? Colors.green : Colors.red,
+        ),
         title: Text('Statut de Synchronisation OMS'),
         subtitle: Text(
-          'Dernière synchronisation réussie le 25/08/2025. Données de mortalité à jour pour 12 pays.',
+          // 💡 NOUVEAU : Texte dynamique
+          isSynced
+              ? 'Dernière synchronisation réussie le $syncDateText. Données de mortalité à jour pour $_uniqueCountryStatsCount pays.'
+              : 'Données WHO non disponibles ou synchronisation requise.',
         ),
-        trailing: Icon(Icons.check_circle, color: Colors.green),
+        trailing: Icon(
+          isSynced ? Icons.check_circle : Icons.error,
+          color: isSynced ? Colors.green : Colors.red,
+        ),
       ),
     );
   }

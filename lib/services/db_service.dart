@@ -11,9 +11,8 @@ class DatabaseService {
   static const String tableName = 'Patients';
   // 🔥 MODE DEBUG : Change à true SEULEMENT pour réinitialiser la DB
   // ⚠️ ATTENTION : Mets à false avant de publier l'app !
-  static const bool FORCE_RESET_DB =
-      true; //pour insérer les patients de test (une seule fois).
-  // static const bool FORCE_RESET_DB = false;
+  // static const bool FORCE_RESET_DB =true; //pour insérer les patients de test (une seule fois).
+  static const bool FORCE_RESET_DB = false;
 
   //🎯 MODE AUTO : Insère les données de test si la DB est vide
   static const bool AUTO_INSERT_TEST_DATA = true;
@@ -96,7 +95,7 @@ class DatabaseService {
  ''');
     print('✅ Table country_stats créée');
     // Insérer les données de test
-    // await _insertTestData(db);
+    await _insertTestData(db);
     // ✨ NOUVEAU : Table des conseils
     await db.execute('''
  CREATE TABLE conseils (

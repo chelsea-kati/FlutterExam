@@ -37,7 +37,9 @@ dependencies:
   connectivity_plus: ^5.0.0  # Pour vérifier la connexion internet
   async: ^2.11.0 # Pour la fonction Debouncer
   debounce_throttle: ^2.0.0
-  
+  # 👈 AJOUTEZ CECI : Package pour l'internationalisation et le formatage des dates
+  intl: ^0.18.1
+
   #flutter pub add debounce_throttle: ^1.0.3 # Pour la fonction Debouncer"
 
 
