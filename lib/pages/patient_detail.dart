@@ -6,6 +6,11 @@ import '../models/patient.dart'; // Assurez-vous d'importer votre modèle Patien
 import '../widgets/metric_card.dart';
 import '../models/Conseil.dart'; // 1. Import du modèle Conseil
 import '../services/db_service.dart'; // 2. Import du service DB
+import '../services/ai_chat_service.dart'; // 2. Import du service DB
+//import '../services/ai_chat_service.dart'; // 2. Import du service DB
+// import 'utils/constants.dart';
+import '../pages/ai_chat_page.dart';
+
 
 // Définition des constantes pour les couleurs et tailles (pour l'exemple)
 // class AppColors {
@@ -35,319 +40,583 @@ class PatientDetailPage extends StatefulWidget {
 }
 
 class _PatientDetailPageState extends State<PatientDetailPage> {
-  Conseil? _conseil;
-  bool _isLoadingAdvice = true;
+  bool _isGeneratingAdvice = false;
+  List<String> _aiAdvice = [];
+  MessageSource? _adviceSource;
 
   @override
   void initState() {
     super.initState();
-    _loadConseil(); // 3. Lancer le chargement asynchrone
+    if (widget.patient.conseils != null) {
+      _aiAdvice = widget.patient.conseils!
+          .split('\n')
+          .where((s) => s.trim().isNotEmpty)
+          .toList();
+              AIChatService.instance.initializeChat(widget.patient); 
+
+    }
   }
 
-  // 4. Méthode pour charger le conseil depuis la DB
-  Future<void> _loadConseil() async {
-    // Si l'état n'est pas monté, on arrête (sécurité)
-    if (!mounted) return;
-
+  Future<void> _generateAIAdvice() async {
     setState(() {
-      _isLoadingAdvice = true;
+      _isGeneratingAdvice = true;
     });
 
-    // Appel au service pour récupérer le conseil basé sur la maladie du patient
-    final conseil = await DatabaseService.instance.getConseilByMaladie(
-      widget.patient.maladie,
-    );
+    try {
+      final result = await AIChatService.instance.generateAdvice(
+        widget.patient,
+      );
 
-    if (mounted) {
       setState(() {
-        _conseil = conseil;
-        _isLoadingAdvice = false;
+        _aiAdvice = result.advice;
+        _adviceSource = result.source;
+        _isGeneratingAdvice = false;
       });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            // On vérifie si la source est l'IA pour déterminer le succès
+            result.source == MessageSource.ai
+                ? '✨ Conseils IA générés avec succès !'
+                : '📋 Conseils locaux chargés',
+          ),
+          backgroundColor: result.source == MessageSource.ai ? Colors.green : Colors.orange,
+        ),
+      );
+    } catch (e) {
+      setState(() {
+        _isGeneratingAdvice = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erreur: $e'), backgroundColor: Colors.red),
+      );
     }
+  }
+
+  // Générer une couleur basée sur le nom
+  Color _getPatientColor() {
+    final colors = [
+      Colors.blue,
+      Colors.purple,
+      Colors.green,
+      Colors.orange,
+      Colors.teal,
+      Colors.pink,
+    ];
+    final index = widget.patient.nom.hashCode % colors.length;
+    return colors[index.abs()];
   }
 
   @override
   Widget build(BuildContext context) {
+    final patientColor = _getPatientColor();
+
     return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: Text(widget.patient.nomComplet),
-        backgroundColor: AppColors.primary,
-        elevation: 0,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(AppSizes.paddingL),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildHeader(context),
-            const SizedBox(height: AppSizes.paddingXL),
-            _buildInfoCard(context),
-            const SizedBox(height: AppSizes.paddingXL), // Espace augmenté
-            // 5. Remplacement de l'ancienne section "Conseils Médicaux"
-            _buildSectionTitle(context, 'Conseils Médicaux Spécifiques'),
-            _buildConseilSection(context),
-
-            const SizedBox(height: AppSizes.paddingL),
-            // Remplacer l'ancienne section Notes (si elle existe toujours) par une section Visites/Notes
-            _buildSectionTitle(context, 'Notes et Suivi (Visites)'),
-            _buildNotesCard(
-              context,
-            ), // Garder cette carte pour les notes/conseils saisis par l'utilisateur
-          ],
-        ),
-      ),
-    );
-  }
-
-  // ----------------------------------------------------
-  // NOUVELLES ET MODIFIÉES SECTIONS
-  // ----------------------------------------------------
-
-  // 6. Nouvelle méthode pour afficher la logique de chargement/affichage du Conseil
-  Widget _buildConseilSection(BuildContext context) {
-    if (_isLoadingAdvice) {
-      return const Center(
-        child: Padding(
-          padding: EdgeInsets.all(AppSizes.paddingL),
-          child: CircularProgressIndicator(),
-        ),
-      );
-    }
-
-    if (_conseil != null) {
-      return AdviceCard(conseil: _conseil!);
-    } else {
-      return Card(
-        elevation: 2,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        child: Padding(
-          padding: const EdgeInsets.all(AppSizes.paddingL),
-          child: Text(
-            'Aucun conseil général trouvé pour la maladie "${widget.patient.maladie}".',
-            style: TextStyle(
-              fontStyle: FontStyle.italic,
-              color: AppColors.textSecondary,
+      body: CustomScrollView(
+        slivers: [
+          // AppBar avec photo du patient
+          SliverAppBar(
+            expandedHeight: 280,
+            pinned: true,
+            backgroundColor: patientColor,
+            flexibleSpace: FlexibleSpaceBar(
+              background: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [patientColor, patientColor.withOpacity(0.8)],
+                  ),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const SizedBox(height: 60),
+                    // Photo du patient avec bordure
+                    Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white, width: 4),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.2),
+                            blurRadius: 20,
+                            spreadRadius: 5,
+                          ),
+                        ],
+                      ),
+                      child: CircleAvatar(
+                        radius: 60,
+                        backgroundColor: Colors.white,
+                        child: Text(
+                          widget.patient.prenom[0].toUpperCase() +
+                              widget.patient.nom[0].toUpperCase(),
+                          style: TextStyle(
+                            fontSize: 48,
+                            fontWeight: FontWeight.bold,
+                            color: patientColor,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    // Nom du patient
+                    Text(
+                      widget.patient.nomComplet,
+                      style: const TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    // Badge statut
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.3),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        widget.patient.statut,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.edit, color: Colors.white),
+                onPressed: () {
+                  // TODO: Navigation vers édition
+                },
+              ),
+            ],
           ),
-        ),
-      );
-    }
-  }
 
-  // Widget pour les notes (maintenant séparé des conseils médicaux)
-  Widget _buildNotesCard(BuildContext context) {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Padding(
-        padding: const EdgeInsets.all(AppSizes.paddingL),
-        child: Text(
-          widget.patient.conseils ??
-              "Aucune note de suivi (conseils manuels) disponible.",
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(height: 1.5),
-        ),
-      ),
-    );
-  }
+          // Contenu
+          SliverList(
+            delegate: SliverChildListDelegate([
+              const SizedBox(height: 16),
 
-  // ----------------------------------------------------
-  // WIDGETS HELPER (basés sur le code original, adaptés à l'état)
-  // ----------------------------------------------------
+              // Cartes d'informations rapides
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: _buildQuickInfoCard(
+                        icon: Icons.cake,
+                        label: 'Âge',
+                        value: '${widget.patient.age} ans',
+                        color: Colors.blue,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _buildQuickInfoCard(
+                        icon: Icons.public,
+                        label: 'Pays',
+                        value: widget.patient.pays,
+                        color: Colors.green,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
 
-  // Utilisation de widget.patient au lieu de patient
-  Widget _buildHeader(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          widget.patient.nomComplet,
-          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-            fontWeight: FontWeight.bold,
-            color: AppColors.textPrimary,
-          ),
-        ),
-        const SizedBox(height: AppSizes.paddingS),
-        Chip(
-          label: Text(
-            widget.patient.maladie,
-            style: const TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          backgroundColor: AppColors.primary,
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        ),
-      ],
-    );
-  }
+              const SizedBox(height: 12),
 
-  // Utilisation de widget.patient au lieu de patient
-  Widget _buildInfoCard(BuildContext context) {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Padding(
-        padding: const EdgeInsets.all(AppSizes.paddingL),
-        child: Column(
-          children: [
-            _buildInfoRow(
-              context,
-              icon: Icons.cake_rounded,
-              label: 'Âge',
-              value: '${widget.patient.age} ans',
-            ),
-            const Divider(),
-            _buildInfoRow(
-              context,
-              icon: Icons.location_on_rounded,
-              label: 'Pays',
-              value: widget.patient.pays,
-            ),
-            const Divider(),
-            _buildInfoRow(
-              context,
-              icon: Icons.calendar_today_rounded,
-              label: 'Création du dossier',
-              value: _formatDate(widget.patient.dateCreation),
-            ),
-            const Divider(),
-            _buildInfoRow(
-              context,
-              icon: Icons.monitor_heart_rounded,
-              label: 'Statut de suivi',
-              value: widget.patient.statut,
-              valueColor: _getStatusColor(widget.patient.statut),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+              // Carte maladie
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Card(
+                  elevation: 2,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.red.shade50,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Icon(
+                            Icons.medical_services,
+                            color: Colors.red.shade400,
+                            size: 28,
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Diagnostic',
+                                style: TextStyle(
+                                  color: Colors.grey,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                widget.patient.maladie,
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
 
-  // Helper pour construire une ligne d'information (inchangé)
-  Widget _buildInfoRow(
-    BuildContext context, {
-    required IconData icon,
-    required String label,
-    required String value,
-    Color? valueColor,
-  }) {
-    // ... (Logique inchangée)
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12.0),
-      child: Row(
-        children: [
-          Icon(icon, color: AppColors.primary, size: 24),
-          const SizedBox(width: AppSizes.paddingM),
-          Text(
-            '$label:',
-            style: Theme.of(
-              context,
-            ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600),
-          ),
-          const Spacer(),
-          Text(
-            value,
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-              color: valueColor ?? AppColors.textSecondary,
-              fontWeight: FontWeight.w500,
-            ),
+              if (widget.patient.derniereVisite != null) ...[
+                const SizedBox(height: 12),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Card(
+                    elevation: 2,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.purple.shade50,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Icon(
+                              Icons.calendar_today,
+                              color: Colors.purple.shade400,
+                              size: 28,
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'Dernière visite',
+                                  style: TextStyle(
+                                    color: Colors.grey,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  '${widget.patient.derniereVisite!.day}/${widget.patient.derniereVisite!.month}/${widget.patient.derniereVisite!.year}',
+                                  style: const TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                Text(
+                                  'Il y a ${DateTime.now().difference(widget.patient.derniereVisite!).inDays} jours',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey.shade600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+
+              const SizedBox(height: 24),
+
+              // Section Actions IA
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Text(
+                  'Assistant Médical IA',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey.shade800,
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 12),
+
+              // Bouton Chat IA - DESIGN AMÉLIORÉ
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: InkWell(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            AIChatPage(patient: widget.patient),
+                      ),
+                    );
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF667eea), Color(0xFF764ba2)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF667eea).withOpacity(0.4),
+                          blurRadius: 20,
+                          offset: const Offset(0, 10),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: const Icon(
+                            Icons.chat_bubble_outline,
+                            color: Colors.white,
+                            size: 32,
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        const Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Poser une question',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              SizedBox(height: 4),
+                              Text(
+                                'Discutez avec l\'assistant IA 24/7',
+                                style: TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const Icon(
+                          Icons.arrow_forward_ios,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 12),
+
+              // Bouton Conseils automatiques
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: OutlinedButton.icon(
+                  onPressed: _isGeneratingAdvice ? null : _generateAIAdvice,
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.all(16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    side: BorderSide(color: Colors.blue.shade300, width: 2),
+                  ),
+                  icon: _isGeneratingAdvice
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.auto_awesome),
+                  label: Text(
+                    _isGeneratingAdvice
+                        ? 'Génération en cours...'
+                        : 'Générer conseils personnalisés',
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 24),
+
+              // Section Conseils
+              if (_aiAdvice.isNotEmpty) ...[
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Conseils Personnalisés',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.grey.shade800,
+                        ),
+                      ),
+                      if (_adviceSource != null)
+                        Chip(
+                          label: Text(
+                            _adviceSource == MessageSource.ai
+                                ? '🤖 IA'
+                                : '📋 Local',
+                            style: const TextStyle(fontSize: 11),
+                          ),
+                          backgroundColor: _adviceSource == MessageSource.ai
+                              ? Colors.green.shade50
+                              : Colors.orange.shade50,
+                          padding: EdgeInsets.zero,
+                        ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Card(
+                    elevation: 2,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        children: _aiAdvice.asMap().entries.map((entry) {
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 16),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Container(
+                                  width: 32,
+                                  height: 32,
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      colors: [
+                                        Colors.blue.shade400,
+                                        Colors.blue.shade600,
+                                      ],
+                                    ),
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  child: Center(
+                                    child: Text(
+                                      '${entry.key + 1}',
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Text(
+                                    entry.value,
+                                    style: const TextStyle(
+                                      fontSize: 15,
+                                      height: 1.5,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+
+              const SizedBox(height: 80),
+            ]),
           ),
         ],
       ),
     );
   }
 
-  // Helper pour les titres de section (inchangé)
-  Widget _buildSectionTitle(BuildContext context, String title) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: AppSizes.paddingS),
-      child: Text(
-        title,
-        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-          fontWeight: FontWeight.bold,
-          color: AppColors.textPrimary,
-        ),
-      ),
-    );
-  }
-
-  // Helper pour formater la date (inchangé)
-  String _formatDate(DateTime date) {
-    return "${date.day}/${date.month}/${date.year}";
-  }
-
-  // Helper pour obtenir la couleur du statut (inchangé)
-  Color _getStatusColor(String status) {
-    switch (status.toLowerCase()) {
-      case 'nouveau':
-      case 'récent':
-        return Colors.green;
-      case 'stable':
-        return Colors.blue;
-      case 'a revoir':
-        return Colors.red;
-      default:
-        return AppColors.textSecondary;
-    }
-  }
-}
-
-// ----------------------------------------------------
-// NOUVEAU WIDGET : AdviceCard
-// ----------------------------------------------------
-
-class AdviceCard extends StatelessWidget {
-  final Conseil conseil;
-  const AdviceCard({super.key, required this.conseil});
-
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildQuickInfoCard({
+    required IconData icon,
+    required String label,
+    required String value,
+    required Color color,
+  }) {
     return Card(
-      elevation: 4,
-      // Utilisation d'une couleur d'arrière-plan douce pour les conseils
-      color: AppColors.tealCard.withOpacity(0.5),
+      elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      margin: const EdgeInsets.only(bottom: AppSizes.paddingL),
       child: Padding(
-        padding: const EdgeInsets.all(AppSizes.paddingL),
+        padding: const EdgeInsets.all(16),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                const Icon(Icons.lightbulb_outline, color: AppColors.primary),
-                const SizedBox(width: AppSizes.paddingS),
-                Expanded(
-                  child: Text(
-                    conseil.titre,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.primary,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const Divider(height: AppSizes.paddingL),
-            Text(
-              conseil.description,
-              style: Theme.of(context).textTheme.bodyLarge,
-            ),
-            if (conseil.source != null && conseil.source!.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.only(top: AppSizes.paddingM),
-                child: Text(
-                  'Source: ${conseil.source}',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontStyle: FontStyle.italic,
-                    color: AppColors.textSecondary,
-                  ),
-                ),
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
               ),
+              child: Icon(icon, color: color, size: 24),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              label,
+              style: const TextStyle(
+                color: Colors.grey,
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              value,
+              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
+            ),
           ],
         ),
       ),

@@ -9,6 +9,8 @@ import 'widgets/placeholder_page.dart'; // Nouveau widget
 import 'widgets/metric_card.dart';
 import 'pages/add_patient.dart';
 import 'pages/statistics_page.dart';
+import 'services/ai_chat_service.dart';
+import 'pages/ai_chat_page.dart';
 
 //  import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 // You import sqflite_common_ffi to initialize the database engine for your platform.
@@ -136,8 +138,8 @@ class _MainNavigationState extends State<MainNavigation> {
 
 //  MISE À JOUR DES PAGES : UTILISATION DE LA VRAIE PAGE
 // // Renommée pour éviter le conflit avec la classe StatisticsPage de votre fichier statistics_page.dart
-class ActualStatisticsPage  extends StatelessWidget {
-  const ActualStatisticsPage ({super.key});
+class ActualStatisticsPage extends StatelessWidget {
+  const ActualStatisticsPage({super.key});
 
   @override
   Widget build(BuildContext context) {

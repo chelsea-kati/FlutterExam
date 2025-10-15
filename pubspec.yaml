@@ -38,9 +38,9 @@ dependencies:
   async: ^2.11.0 # Pour la fonction Debouncer
   debounce_throttle: ^2.0.0
   # 👈 AJOUTEZ CECI : Package pour l'internationalisation et le formatage des dates
-  intl: ^0.18.1
-
-  #flutter pub add debounce_throttle: ^1.0.3 # Pour la fonction Debouncer"
+  intl: ^0.18.1 #flutter pub add debounce_throttle: ^1.0.3 # Pour la fonction Debouncer"
+  google_generative_ai: ^0.4.7 # Pour intégrer l'API Generative AI de Google
+  
 
 
   # The following adds the Cupertino Icons font to your application.

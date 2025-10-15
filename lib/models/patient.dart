@@ -7,7 +7,7 @@ class Patient {
   final int age;
   final String pays;
   final String maladie;
-  final String? conseils;
+  String? conseils;
   final DateTime dateCreation;
   final DateTime? derniereVisite;
 
