@@ -296,9 +296,9 @@ class _HomePageState extends State<HomePage> {
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
                         crossAxisCount: 2,
-                        crossAxisSpacing: AppSizes.paddingM,
-                        mainAxisSpacing: AppSizes.paddingM,
-                        childAspectRatio: 1.1,
+                        crossAxisSpacing: AppSizes.paddingS,
+                        mainAxisSpacing: AppSizes.paddingS,
+                        childAspectRatio: 0.95,
                         children: [
                           MetricCard(
                             title: 'Patients Actifs',
