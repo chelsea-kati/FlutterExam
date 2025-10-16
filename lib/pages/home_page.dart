@@ -298,7 +298,7 @@ class _HomePageState extends State<HomePage> {
                         crossAxisCount: 2,
                         crossAxisSpacing: AppSizes.paddingS,
                         mainAxisSpacing: AppSizes.paddingS,
-                        childAspectRatio: 0.95,
+                        childAspectRatio: 0.90,
                         children: [
                           MetricCard(
                             title: 'Patients Actifs',

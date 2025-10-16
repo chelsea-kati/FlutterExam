@@ -4,14 +4,10 @@ import 'package:flutter/material.dart';
 import '../models/patient.dart';
 import '../services/ai_chat_service.dart';
 
-
 class AIChatPage extends StatefulWidget {
   final Patient patient;
 
-  const AIChatPage({
-    Key? key,
-    required this.patient,
-  }) : super(key: key);
+  const AIChatPage({Key? key, required this.patient}) : super(key: key);
 
   @override
   State<AIChatPage> createState() => _AIChatPageState();
@@ -29,12 +25,15 @@ class _AIChatPageState extends State<AIChatPage> {
     AIChatService.instance.initializeChat(widget.patient);
 
     // Message de bienvenue
-    _messages.add(ChatMessage(
-      text: 'Bonjour ${widget.patient.prenom} 👋\n\nJe suis votre assistant médical virtuel. Je peux répondre à vos questions sur ${widget.patient.maladie}, les médicaments, l\'alimentation et plus encore.\n\nComment puis-je vous aider aujourd\'hui ?',
-      isFromUser: false,
-      timestamp: DateTime.now(),
-      source: MessageSource.ai,
-    ));
+    _messages.add(
+      ChatMessage(
+        text:
+            'Bonjour ${widget.patient.prenom} 👋\n\nJe suis votre assistant médical virtuel. Je peux répondre à vos questions sur ${widget.patient.maladie}, les médicaments, l\'alimentation et plus encore.\n\nComment puis-je vous aider aujourd\'hui ?',
+        isFromUser: false,
+        timestamp: DateTime.now(),
+        source: MessageSource.ai,
+      ),
+    );
   }
 
   @override
@@ -64,12 +63,14 @@ class _AIChatPageState extends State<AIChatPage> {
     _messageController.clear();
 
     setState(() {
-      _messages.add(ChatMessage(
-        text: userMessage,
-        isFromUser: true,
-        timestamp: DateTime.now(),
-        source: MessageSource.user,
-      ));
+      _messages.add(
+        ChatMessage(
+          text: userMessage,
+          isFromUser: true,
+          timestamp: DateTime.now(),
+          source: MessageSource.user,
+        ),
+      );
       _isTyping = true;
     });
 
@@ -79,24 +80,28 @@ class _AIChatPageState extends State<AIChatPage> {
       final response = await AIChatService.instance.sendMessage(userMessage);
 
       setState(() {
-        _messages.add(ChatMessage(
-          text: response.message,
-          isFromUser: false,
-          timestamp: response.timestamp,
-          source: response.source,
-        ));
+        _messages.add(
+          ChatMessage(
+            text: response.message,
+            isFromUser: false,
+            timestamp: response.timestamp,
+            source: response.source,
+          ),
+        );
         _isTyping = false;
       });
 
       _scrollToBottom();
     } catch (e) {
       setState(() {
-        _messages.add(ChatMessage(
-          text: 'Désolé, une erreur est survenue. Réessayez.',
-          isFromUser: false,
-          timestamp: DateTime.now(),
-          source: MessageSource.local,
-        ));
+        _messages.add(
+          ChatMessage(
+            text: 'Désolé, une erreur est survenue. Réessayez.',
+            isFromUser: false,
+            timestamp: DateTime.now(),
+            source: MessageSource.local,
+          ),
+        );
         _isTyping = false;
       });
     }
@@ -236,12 +241,14 @@ class _AIChatPageState extends State<AIChatPage> {
                                     setState(() {
                                       _messages.clear();
                                       AIChatService.instance.resetChat();
-                                      _messages.add(ChatMessage(
-                                        text: 'Conversation réinitialisée.',
-                                        isFromUser: false,
-                                        timestamp: DateTime.now(),
-                                        source: MessageSource.ai,
-                                      ));
+                                      _messages.add(
+                                        ChatMessage(
+                                          text: 'Conversation réinitialisée.',
+                                          isFromUser: false,
+                                          timestamp: DateTime.now(),
+                                          source: MessageSource.ai,
+                                        ),
+                                      );
                                     });
                                   },
                                 ),
@@ -274,16 +281,17 @@ class _AIChatPageState extends State<AIChatPage> {
           // Messages
           Expanded(
             child: Container(
-              decoration: BoxDecoration(
-                color: Colors.grey.shade50,
-              ),
+              decoration: BoxDecoration(color: Colors.grey.shade50),
               child: ListView.builder(
                 controller: _scrollController,
                 padding: const EdgeInsets.all(16),
                 itemCount: _messages.length,
                 itemBuilder: (context, index) {
                   final message = _messages[index];
-                  return ChatBubble(message: message, patientColor: patientColor);
+                  return ChatBubble(
+                    message: message,
+                    patientColor: patientColor,
+                  );
                 },
               ),
             ),
@@ -303,8 +311,10 @@ class _AIChatPageState extends State<AIChatPage> {
                   ),
                   const SizedBox(width: 8),
                   Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(20),
@@ -340,8 +350,11 @@ class _AIChatPageState extends State<AIChatPage> {
                 children: [
                   Row(
                     children: [
-                      Icon(Icons.lightbulb_outline,
-                          size: 16, color: Colors.grey.shade600),
+                      Icon(
+                        Icons.lightbulb_outline,
+                        size: 16,
+                        color: Colors.grey.shade600,
+                      ),
                       const SizedBox(width: 6),
                       Text(
                         'Questions suggérées',
@@ -411,8 +424,10 @@ class _AIChatPageState extends State<AIChatPage> {
                       shape: BoxShape.circle,
                     ),
                     child: IconButton(
-                      icon: Icon(Icons.emoji_emotions_outlined,
-                          color: Colors.grey.shade600),
+                      icon: Icon(
+                        Icons.emoji_emotions_outlined,
+                        color: Colors.grey.shade600,
+                      ),
                       onPressed: () {
                         // TODO: Afficher sélecteur emoji
                       },
@@ -462,8 +477,11 @@ class _AIChatPageState extends State<AIChatPage> {
                       ],
                     ),
                     child: IconButton(
-                      icon: const Icon(Icons.send_rounded,
-                          color: Colors.white, size: 20),
+                      icon: const Icon(
+                        Icons.send_rounded,
+                        color: Colors.white,
+                        size: 20,
+                      ),
                       onPressed: () => _sendMessage(_messageController.text),
                     ),
                   ),
@@ -493,8 +511,9 @@ class ChatBubble extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Row(
-        mainAxisAlignment:
-            message.isFromUser ? MainAxisAlignment.end : MainAxisAlignment.start,
+        mainAxisAlignment: message.isFromUser
+            ? MainAxisAlignment.end
+            : MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (!message.isFromUser) ...[
@@ -519,9 +538,7 @@ class ChatBubble extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
-                color: message.isFromUser
-                    ? patientColor
-                    : Colors.white,
+                color: message.isFromUser ? patientColor : Colors.white,
                 borderRadius: BorderRadius.only(
                   topLeft: Radius.circular(message.isFromUser ? 20 : 4),
                   topRight: Radius.circular(message.isFromUser ? 4 : 20),
@@ -542,8 +559,7 @@ class ChatBubble extends StatelessWidget {
                   Text(
                     message.text,
                     style: TextStyle(
-                      color:
-                          message.isFromUser ? Colors.white : Colors.black87,
+                      color: message.isFromUser ? Colors.white : Colors.black87,
                       fontSize: 15,
                       height: 1.4,
                     ),
@@ -618,10 +634,7 @@ class _TypingDotState extends State<_TypingDot>
       child: Container(
         width: 8,
         height: 8,
-        decoration: BoxDecoration(
-          color: widget.color,
-          shape: BoxShape.circle,
-        ),
+        decoration: BoxDecoration(color: widget.color, shape: BoxShape.circle),
       ),
     );
   }

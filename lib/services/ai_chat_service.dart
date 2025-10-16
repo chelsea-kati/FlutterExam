@@ -1,8 +1,8 @@
-// lib/services/ai_service.dart
+// lib/services/ai_chat_service.dart
 
 import 'package:google_generative_ai/google_generative_ai.dart';
 import '../models/patient.dart';
-import '../services/db_service.dart';
+import '../services/db_service.dart'; // <--- CETTE LIGNE EST ESSENTIELLE
 
 class AIChatService {
   static final AIChatService instance = AIChatService._internal();
@@ -11,24 +11,48 @@ class AIChatService {
   // 🔑 MÊME CLÉ QUE AI_SERVICE
   static const String _apiKey = 'AIzaSyA9KlGdCICCiPJS9YAHu_8P2JXXix_vUQw';
 
-  late final GenerativeModel _model;
-  late final ChatSession _chatSession;
+  // late final GenerativeModel _model;
+  GenerativeModel? _model; // MODIFIÉ : Rendu optionnel
+  // late final ChatSession _chatSession;
+  ChatSession? _chatSession; // MODIFIÉ : Rendu optionnel
   Patient? _currentPatient;
 
   // Initialiser le chat pour un patient spécifique
   void initializeChat(Patient patient) {
+    // _currentPatient = patient;
+
+    // _model = GenerativeModel(
+    //   model: 'gemini-pro',
+    //   apiKey: _apiKey,
+    //   generationConfig: GenerationConfig(
+    //     temperature: 0.7,
+    //     topK: 40,
+    //     topP: 0.95,
+    //     maxOutputTokens: 1024,
+    //   ),
+    // );
+    // Vérifie si la session est déjà initialisée pour ce patient
+    if (_currentPatient != null &&
+        _currentPatient!.id == patient.id &&
+        _chatSession != null) {
+      return; // Ne fait rien si c'est le même patient et la session est active
+    }
+
     _currentPatient = patient;
 
-    _model = GenerativeModel(
-      model: 'gemini-pro',
-      apiKey: _apiKey,
-      generationConfig: GenerationConfig(
-        temperature: 0.7,
-        topK: 40,
-        topP: 0.95,
-        maxOutputTokens: 1024,
-      ),
-    );
+    // 💡 S'assurer que _model est initialisé une seule fois pour tous les patients
+    if (_model == null) {
+      _model = GenerativeModel(
+        model: 'gemini-pro',
+        apiKey: _apiKey,
+        generationConfig: GenerationConfig(
+          temperature: 0.7,
+          topK: 40,
+          topP: 0.95,
+          maxOutputTokens: 1024,
+        ),
+      );
+    }
 
     // Contexte initial du patient pour l'IA
     final systemPrompt =
@@ -55,7 +79,7 @@ Consignes IMPORTANTES :
 Tu es prêt à répondre aux questions du patient.
 ''';
 
-    _chatSession = _model.startChat(
+    _chatSession = _model!.startChat(
       history: [
         Content.text(systemPrompt),
         Content.model([
@@ -84,7 +108,7 @@ Tu es prêt à répondre aux questions du patient.
       print('👤 User: $userMessage');
 
       final content = Content.text(userMessage);
-      final response = await _chatSession.sendMessage(content);
+      final response = await _chatSession!.sendMessage(content);
 
       if (response.text == null || response.text!.isEmpty) {
         throw Exception('Réponse vide de l\'IA');
@@ -134,7 +158,7 @@ Tu es prêt à répondre aux questions du patient.
       source: MessageSource.local,
     );
   }
-  
+
   // =======================================================================
   // NOUVELLE MÉTHODE POUR GÉNÉRER LES CONSEILS (REMPLACE L'ANCIENNE)
   // =======================================================================
@@ -146,7 +170,8 @@ Tu es prêt à répondre aux questions du patient.
 
     final model = GenerativeModel(model: 'gemini-pro', apiKey: _apiKey);
 
-    final prompt = '''
+    final prompt =
+        '''
       Génère une liste de 4 conseils de santé courts, pratiques et faciles à suivre pour un patient avec le profil suivant :
       - Diagnostic : ${patient.maladie}
       - Âge : ${patient.age} ans
@@ -179,10 +204,7 @@ Tu es prêt à répondre aux questions du patient.
       await DatabaseService.instance.updatePatient(patient);
 
       // Ici, on appelle le constructeur de la classe AdviceResponse, c'est correct
-      return AdviceResponse(
-        advice: adviceList,
-        source: MessageSource.ai,
-      );
+      return AdviceResponse(advice: adviceList, source: MessageSource.ai);
     } catch (e) {
       print('❌ Erreur lors de la génération de conseils IA: $e');
       return _getLocalAdviceFallback(patient); // Appel de la méthode renommée
@@ -218,7 +240,7 @@ Tu es prêt à répondre aux questions du patient.
         'Parlez à un professionnel de santé avant de prendre un nouveau médicament.',
       ];
     }
-    
+
     patient.conseils = advice.join('\n');
     DatabaseService.instance.updatePatient(patient);
 
@@ -252,19 +274,6 @@ Tu es prêt à répondre aux questions du patient.
   }
 }
 
-
-
-
-// Modèle pour le retour des conseils (correspond à 'result')
-// class AdviceResponse {
-//   final List<String> advice; // Ceci correspond à 'result.advice'
-//   final MessageSource source; // Ceci correspond à 'result.source'
-
-//   AdviceResponse({
-//     required this.advice,
-//     required this.source,
-//   });
-// }
 // Modèle pour les réponses du chat
 class ChatResponse {
   final String message;
@@ -285,10 +294,7 @@ class AdviceResponse {
   final List<String> advice;
   final MessageSource source;
 
-  AdviceResponse({
-    required this.advice,
-    required this.source,
-  });
+  AdviceResponse({required this.advice, required this.source});
 }
 
 enum MessageSource {

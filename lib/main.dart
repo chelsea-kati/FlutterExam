@@ -28,6 +28,8 @@ void main() {
 
   // or, if you're using the older method:
   // databaseFactory = databaseFactoryFfi;
+  // Initialiser l'IA une seule fois
+  //AIChatService.instance.initializeChat();
   runApp(const PlaidoyerSanteApp());
 }
 
