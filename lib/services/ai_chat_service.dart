@@ -9,7 +9,13 @@ class AIChatService {
   AIChatService._internal();
 
   // 🔑 MÊME CLÉ QUE AI_SERVICE
-  static const String _apiKey = 'AIzaSyA9KlGdCICCiPJS9YAHu_8P2JXXix_vUQw';
+  // 1. Déclarez une chaîne de remplissage claire (que l'utilisateur doit remplacer)
+  static const String _PLACEHOLDER_KEY =
+      'AIzaSyA9KlGdCICCiPJS9YAHu_8P2JXXix_vUQPw';
+
+  // 2. Utilisez la chaîne de remplissage pour la clé déclarée (qui doit être remplacée par l'utilisateur)
+  static const String _apiKey =
+      'AIzaSyA9KlGdCICCiPJS9YAHu_8P2JXXix_vUQPw'; // L'utilisateur doit remplacer cette ligne !
 
   // late final GenerativeModel _model;
   GenerativeModel? _model; // MODIFIÉ : Rendu optionnel
@@ -99,7 +105,7 @@ Tu es prêt à répondre aux questions du patient.
       );
     }
 
-    if (_apiKey == 'AIzaSyA9KlGdCICCiPJS9YAHu_8P2JXXix_vUQw') {
+    if (_apiKey == _PLACEHOLDER_KEY) {
       // Mode offline - réponses prédéfinies
       return _getOfflineResponse(userMessage);
     }
