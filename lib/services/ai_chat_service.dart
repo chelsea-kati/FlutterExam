@@ -11,11 +11,11 @@ class AIChatService {
   // 🔑 MÊME CLÉ QUE AI_SERVICE
   // 1. Déclarez une chaîne de remplissage claire (que l'utilisateur doit remplacer)
   static const String _PLACEHOLDER_KEY =
-      'AIzaSyA9KlGdCICCiPJS9YAHu_8P2JXXix_vUQPw';
+      'AIzaSyA9KlGdCICCiPJS9YAHu_8P2JXXix_pUQw';// j'ai changé ici 
 
   // 2. Utilisez la chaîne de remplissage pour la clé déclarée (qui doit être remplacée par l'utilisateur)
   static const String _apiKey =
-      'AIzaSyA9KlGdCICCiPJS9YAHu_8P2JXXix_vUQPw'; // L'utilisateur doit remplacer cette ligne !
+      'AIzaSyA9KlGdCICCiPJS9YAHu_8P2JXXix_vUQw'; // L'utilisateur doit remplacer cette ligne !
 
   // late final GenerativeModel _model;
   GenerativeModel? _model; // MODIFIÉ : Rendu optionnel
@@ -152,6 +152,35 @@ Tu es prêt à répondre aux questions du patient.
         lowerMessage.contains('nourriture')) {
       response =
           'Pour ${_currentPatient!.maladie}, privilégiez les fruits frais, légumes, et évitez les aliments transformés. Buvez beaucoup d\'eau. Une alimentation équilibrée aide au traitement.';
+      // 👇👇 AJOUTS IMPORTANTS 👇👇
+    } else if (lowerMessage.contains('douleur') ||
+        lowerMessage.contains('mal') ||
+        lowerMessage.contains('souffrance')) {
+      response =
+          'Si vous ressentez une douleur inhabituelle, notez son intensité et sa localisation. Contactez votre médecin si la douleur persiste ou s\'intensifie. Ne prenez pas de médicaments sans avis médical.';
+    } else if (lowerMessage.contains('exercice') ||
+        lowerMessage.contains('sport') ||
+        lowerMessage.contains('activité')) {
+      response =
+          'L\'exercice physique léger est bénéfique pour ${_currentPatient!.maladie}. Commencez doucement : marche de 15-20 minutes par jour. Écoutez votre corps et reposez-vous si nécessaire.';
+    } else if (lowerMessage.contains('fatigue') ||
+        lowerMessage.contains('fatigué') ||
+        lowerMessage.contains('énergie')) {
+      response =
+          'La fatigue est courante avec ${_currentPatient!.maladie}. Dormez suffisamment (7-8h), faites des siestes courtes si besoin, et mangez des aliments nutritifs. Si la fatigue est excessive, consultez votre médecin.';
+    } else if (lowerMessage.contains('stress') ||
+        lowerMessage.contains('anxiété') ||
+        lowerMessage.contains('peur') ||
+        lowerMessage.contains('inquiet')) {
+      response =
+          'Le stress peut affecter votre santé. Pratiquez la respiration profonde, parlez à vos proches, rejoignez un groupe de soutien. Votre bien-être mental est aussi important que votre santé physique.';
+    } else if (lowerMessage.contains('urgence') ||
+        lowerMessage.contains('grave') ||
+        lowerMessage.contains('danger')) {
+      response =
+          '🚨 Si vous avez une urgence médicale (difficulté à respirer, douleur thoracique intense, saignement important), rendez-vous IMMÉDIATEMENT à l\'hôpital le plus proche.';
+
+      // 👆👆 FIN DES AJOUTS 👆👆
     } else {
       response =
           'Je peux vous aider avec des questions sur les médicaments, l\'alimentation, l\'exercice, ou la gestion de ${_currentPatient!.maladie}. N\'hésitez pas à me poser une question précise.';

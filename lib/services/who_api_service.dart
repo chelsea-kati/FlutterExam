@@ -61,24 +61,44 @@ class WHOApiService {
     ];
   }
 
-  // Vérifier la connexion internet
+  // // Vérifier la connexion internet
+  // Future<bool> hasInternetConnection() async {
+  //   try {
+  //     final connectivityResult = await Connectivity().checkConnectivity();
+  //     if (connectivityResult == ConnectivityResult.none) {
+  //       return false;
+  //     }
+  //     // Augmentez le timeout
+  //     final response = await http
+  //         .get(Uri.parse('$_baseUrl'), headers: {'Accept': 'application/json'})
+  //         .timeout(const Duration(seconds: 15));
+
+  //     return response.statusCode == 200;
+  //   } catch (e) {
+  //     print('Erreur de connexion: $e');
+  //     return false;
+  //   }
+  // }
   Future<bool> hasInternetConnection() async {
-    try {
-      final connectivityResult = await Connectivity().checkConnectivity();
-      if (connectivityResult == ConnectivityResult.none) {
-        return false;
-      }
-
-      final response = await http
-          .get(Uri.parse('$_baseUrl'), headers: {'Accept': 'application/json'})
-          .timeout(const Duration(seconds: 5));
-
-      return response.statusCode == 200;
-    } catch (e) {
-      print('Erreur de connexion: $e');
+  try {
+    final connectivityResult = await Connectivity().checkConnectivity();
+    if (connectivityResult == ConnectivityResult.none) {
+      print('❌ Pas de connectivité réseau');
       return false;
     }
+
+    // Test avec Google au lieu de l'API WHO
+    final response = await http
+        .get(Uri.parse('https://www.google.com'))
+        .timeout(const Duration(seconds: 5));
+
+    print('✅ Connexion internet OK (status: ${response.statusCode})');
+    return response.statusCode == 200;
+  } catch (e) {
+    print('❌ Pas d\'internet: $e');
+    return false;
   }
+}
 
   // Récupérer statistiques cancer par pays
   Future<List<CountryStats>> getCancerStatsByCountry({
@@ -258,7 +278,7 @@ class WHOApiService {
             Uri.parse('$_baseUrl/Indicator'),
             headers: {'Accept': 'application/json'},
           )
-          .timeout(const Duration(seconds: 15));
+          .timeout(const Duration(seconds: 60));
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = json.decode(response.body);
