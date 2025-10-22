@@ -10,6 +10,8 @@ import '../services/who_api_service.dart';
 import 'package:async/async.dart'; // 💡 1. Import pour le Debouncer
 import 'package:debounce_throttle/debounce_throttle.dart' as dt;
 import '../utils/debouncer.dart';
+import '../pages/PatientsListPage.dart';
+
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -87,7 +89,7 @@ class _HomePageState extends State<HomePage> {
   Future<void> _loadPatients() async {
     try {
       final dbService = DatabaseService.instance;
-      final patients = await dbService.getAllPatients();
+      final patients = await dbService.getRecentPatients(5);
       final count = await dbService.getPatientCount();
 
       print('📊 $count patients chargés depuis SQLite');
@@ -381,8 +383,10 @@ class _HomePageState extends State<HomePage> {
                                 ?.copyWith(fontWeight: FontWeight.bold),
                           ),
                           TextButton(
-                            onPressed: () {
-                              Navigator.pushNamed(context, '/patients');
+                            onPressed: () async {
+                            // 💡 Assurez-vous de rafraîchir la Home Page si un patient est supprimé ou modifié  
+                            await Navigator.pushNamed(context, PatientsListPage.routeName);
+                            _initializeData(); // Recharge les données de la Home Page
                             },
                             child: const Text('Voir tout'),
                           ),

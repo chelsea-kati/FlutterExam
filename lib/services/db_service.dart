@@ -320,6 +320,29 @@ class DatabaseService {
       return Patient.fromMap(maps[i]);
     });
   }
+  // 2. READ (Récupérer les 5 patients les plus récents) 💡 NOUVELLE MÉTHODE
+Future<List<Patient>> getRecentPatients(int limit) async {
+  print('📖 Récupération des $limit patients les plus récents...');
+  final db = await database;
+  
+  // Utilise ORDER BY et LIMIT pour n'obtenir que les N plus récents
+  final List<Map<String, dynamic>> maps = await db.query(
+    tableName, // Remplacez par votre nom de table si différent
+    orderBy: 'dateCreation DESC', // Utilisez votre champ de tri récent
+    limit: limit, // La limite passée en paramètre (sera 5)
+  );
+
+  print('📊 Nombre de patients récents trouvés: ${maps.length}');
+
+  if (maps.isEmpty) {
+    print('⚠️ Aucun patient récent trouvé !');
+    return [];
+  }
+
+  return List.generate(maps.length, (i) {
+    return Patient.fromMap(maps[i]);
+  });
+}
 
   // READ - Récupérer un patient par ID
   Future<Patient?> getPatientById(int id) async {
