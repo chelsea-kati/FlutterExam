@@ -11,7 +11,7 @@ import 'pages/add_patient.dart';
 import 'pages/statistics_page.dart';
 import 'services/ai_chat_service.dart';
 import 'pages/ai_chat_page.dart';
-import 'package:firebase_core/firebase_core.dart';
+// import 'package:firebase_core/firebase_core.dart';
 // Importez le fichier d'options généré par FlutterFire CLI
 //import 'firebase_options.dart';
 //  import 'package:sqflite_common_ffi/sqflite_ffi.dart';
