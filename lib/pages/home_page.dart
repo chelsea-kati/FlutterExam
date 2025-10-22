@@ -422,7 +422,9 @@ class _HomePageState extends State<HomePage> {
                           TextButton(
                             onPressed: () async {
                             // 💡 Assurez-vous de rafraîchir la Home Page si un patient est supprimé ou modifié  
-                            await Navigator.pushNamed(context, PatientsListPage.routeName);
+                            await Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => const PatientsListPage()),);
                             _initializeData(); // Recharge les données de la Home Page
                             },
                             child: const Text('Voir tout'),
