@@ -250,6 +250,43 @@ class _HomePageState extends State<HomePage> {
                           ],
                         ),
                       ),
+                      const SizedBox(height: 12),
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        margin: const EdgeInsets.only(bottom: 16),
+                        decoration: BoxDecoration(
+                          color: _isOnline ? Colors.green.shade50 : Colors.orange.shade50,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: _isOnline ? Colors.green : Colors.orange,
+                            width: 2,
+                        ),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                             _isOnline ? Icons.cloud_done : Icons.cloud_off,
+                              color: _isOnline ? Colors.green : Colors.orange,
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                _isOnline
+                                    ? 'Connecté à Internet'
+                                    : 'Hors-ligne: Données locales',
+                                style: TextStyle(
+                                  color: _isOnline ? Colors.green : Colors.orange,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+
+                      ),
+                      
+
+
 
                       const SizedBox(height: 20),
                       TextField(

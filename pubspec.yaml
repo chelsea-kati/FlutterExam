@@ -40,6 +40,14 @@ dependencies:
   # 👈 AJOUTEZ CECI : Package pour l'internationalisation et le formatage des dates
   intl: ^0.18.1 #flutter pub add debounce_throttle: ^1.0.3 # Pour la fonction Debouncer"
   google_generative_ai: ^0.4.7 # Pour intégrer l'API Generative AI de Google
+  # Base de Firebase (obligatoire)
+  firebase_core: ^2.24.2
+  
+  # Firestore (recommandé pour la structure documentaire)
+  cloud_firestore: ^4.13.3 
+  
+  # Optionnel : Authentification (si vous voulez sécuriser l'accès)
+  firebase_auth: ^4.15.3
   
 
 
