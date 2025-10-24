@@ -12,7 +12,6 @@ import 'package:debounce_throttle/debounce_throttle.dart' as dt;
 import '../utils/debouncer.dart';
 import '../pages/PatientsListPage.dart';
 
-
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -28,6 +27,8 @@ class _HomePageState extends State<HomePage> {
   List<CountryStats> _whoStats = [];
   bool _isOnline = true;
   DateTime? _lastSyncDate;
+  bool _isLoadingStats =
+      true; // Initialisé à true car WHOApiService est asynchrone
 
   final Debouncer _debouncer = Debouncer(delay: Duration(milliseconds: 500));
   // 👈 Ajoutez une valeur initiale vide);
@@ -60,6 +61,7 @@ class _HomePageState extends State<HomePage> {
   Future<void> _initializeData() async {
     setState(() {
       _isLoading = true;
+      _isLoadingStats = true;
     });
 
     try {
@@ -106,8 +108,34 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  // Charger stats WHO (appel direct, fallback intégré)
+  // // Charger stats WHO (appel direct, fallback intégré)
+  // Future<void> _loadWhoStats() async {
+  //   try {
+  //     print('🔄 Chargement statistiques WHO...');
+
+  //     // Appel direct à WHOApiService qui gère déjà le fallback
+  //     final stats = await WHOApiService.instance.getCancerStatsByCountry();
+
+  //     print('✅ ${stats.length} pays chargés');
+  //     print(
+  //       '📊 Source: ${stats.first.lastUpdated.difference(DateTime.now()).inSeconds < 5 ? "API WHO" : "Cache/Test"}',
+  //     );
+
+  //     setState(() {
+  //       _whoStats = stats;
+  //     });
+  //   } catch (e) {
+  //     print('❌ Erreur stats WHO: $e');
+  //     setState(() {
+  //       _whoStats = [];
+  //     });
+  //   }
+  // }
   Future<void> _loadWhoStats() async {
+    // 1. Indiquer que le chargement commence
+    setState(() {
+      _isLoadingStats = true;
+    });
     try {
       print('🔄 Chargement statistiques WHO...');
 
@@ -115,17 +143,17 @@ class _HomePageState extends State<HomePage> {
       final stats = await WHOApiService.instance.getCancerStatsByCountry();
 
       print('✅ ${stats.length} pays chargés');
-      print(
-        '📊 Source: ${stats.first.lastUpdated.difference(DateTime.now()).inSeconds < 5 ? "API WHO" : "Cache/Test"}',
-      );
-
+      // 2. Mettre à jour les données ET indiquer que le chargement est fini
       setState(() {
         _whoStats = stats;
+        _isLoadingStats = false;
       });
     } catch (e) {
       print('❌ Erreur stats WHO: $e');
+      // 3. Indiquer que le chargement est fini, même en cas d'erreur
       setState(() {
-        _whoStats = [];
+        _whoStats = []; // La liste est vide en cas d'erreur
+        _isLoadingStats = false;
       });
     }
   }
@@ -255,17 +283,19 @@ class _HomePageState extends State<HomePage> {
                         padding: const EdgeInsets.all(12),
                         margin: const EdgeInsets.only(bottom: 16),
                         decoration: BoxDecoration(
-                          color: _isOnline ? Colors.green.shade50 : Colors.orange.shade50,
+                          color: _isOnline
+                              ? Colors.green.shade50
+                              : Colors.orange.shade50,
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
                             color: _isOnline ? Colors.green : Colors.orange,
                             width: 2,
-                        ),
+                          ),
                         ),
                         child: Row(
                           children: [
                             Icon(
-                             _isOnline ? Icons.cloud_done : Icons.cloud_off,
+                              _isOnline ? Icons.cloud_done : Icons.cloud_off,
                               color: _isOnline ? Colors.green : Colors.orange,
                             ),
                             const SizedBox(width: 8),
@@ -275,18 +305,16 @@ class _HomePageState extends State<HomePage> {
                                     ? 'Connecté à Internet'
                                     : 'Hors-ligne: Données locales',
                                 style: TextStyle(
-                                  color: _isOnline ? Colors.green : Colors.orange,
+                                  color: _isOnline
+                                      ? Colors.green
+                                      : Colors.orange,
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
                             ),
                           ],
                         ),
-
                       ),
-                      
-
-
 
                       const SizedBox(height: 20),
                       TextField(
@@ -421,11 +449,15 @@ class _HomePageState extends State<HomePage> {
                           ),
                           TextButton(
                             onPressed: () async {
-                            // 💡 Assurez-vous de rafraîchir la Home Page si un patient est supprimé ou modifié  
-                            await Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (context) => const PatientsListPage()),);
-                            _initializeData(); // Recharge les données de la Home Page
+                              // 💡 Assurez-vous de rafraîchir la Home Page si un patient est supprimé ou modifié
+                              await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      const PatientsListPage(),
+                                ),
+                              );
+                              _initializeData(); // Recharge les données de la Home Page
                             },
                             child: const Text('Voir tout'),
                           ),
@@ -483,143 +515,148 @@ class _HomePageState extends State<HomePage> {
                       const SizedBox(height: AppSizes.paddingM),
 
                       // Affichage stats WHO
-                      _whoStats.isEmpty
-                          ? Center(
+                      // 1. ÉTAT DE CHARGEMENT
+                      if (_isLoadingStats)
+                        const Center(
+                          child: Padding(
+                            padding: EdgeInsets.all(32.0),
+                            child: CircularProgressIndicator(),
+                          ),
+                        )
+                      else if (_whoStats.isEmpty)
+                        Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(20.0),
+                            child: Column(
+                              children: [
+                                Icon(
+                                  Icons.signal_wifi_off_rounded,
+                                  size: 48,
+                                  color: Colors.grey[400],
+                                ),
+                                const SizedBox(height: 10),
+                                Text(
+                                  'Aucune statistique disponible',
+                                  style: TextStyle(
+                                    color: Colors.grey[600],
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        )
+                      else
+                        // Utilisez un Column pour lister vos Cards, comme vous le faisiez
+                        Column(
+                          children: _whoStats.map((stat) {
+                            final flag =
+                                _countryFlags[stat.countryName] ?? '🌍';
+                            return Card(
+                              elevation: 2,
+                              margin: const EdgeInsets.only(bottom: 12),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
                               child: Padding(
-                                padding: const EdgeInsets.all(20.0),
+                                padding: const EdgeInsets.all(
+                                  AppSizes.paddingL,
+                                ),
                                 child: Column(
                                   children: [
-                                    Icon(
-                                      Icons.signal_wifi_off,
-                                      size: 48,
-                                      color: Colors.grey[400],
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Row(
+                                          children: [
+                                            Container(
+                                              width: 50,
+                                              height: 50,
+                                              decoration: BoxDecoration(
+                                                color: AppColors.primary
+                                                    .withOpacity(0.1),
+                                                borderRadius:
+                                                    BorderRadius.circular(12),
+                                              ),
+                                              child: Center(
+                                                child: Text(
+                                                  flag,
+                                                  style: const TextStyle(
+                                                    fontSize: 28,
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                            const SizedBox(width: 12),
+                                            Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  stat.countryName,
+                                                  style: const TextStyle(
+                                                    fontSize: 16,
+                                                    fontWeight: FontWeight.w600,
+                                                  ),
+                                                ),
+                                                Text(
+                                                  'Année: ${stat.year}',
+                                                  style: TextStyle(
+                                                    fontSize: 12,
+                                                    color: Colors.grey[600],
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ],
+                                        ),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 12,
+                                            vertical: 6,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: AppColors.primary
+                                                .withOpacity(0.1),
+                                            borderRadius: BorderRadius.circular(
+                                              20,
+                                            ),
+                                          ),
+                                          child: Text(
+                                            '${stat.value.toStringAsFixed(1)}',
+                                            style: TextStyle(
+                                              color: AppColors.primary,
+                                              fontWeight: FontWeight.w600,
+                                              fontSize: 14,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                    const SizedBox(height: 10),
-                                    Text(
-                                      'Aucune statistique disponible',
-                                      style: TextStyle(
-                                        color: Colors.grey[600],
-                                        fontSize: 14,
+                                    const SizedBox(height: 12),
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(10),
+                                      child: LinearProgressIndicator(
+                                        value: (stat.value / 300).clamp(
+                                          0.0,
+                                          1.0,
+                                        ),
+                                        backgroundColor:
+                                            AppColors.surfaceVariant,
+                                        valueColor:
+                                            AlwaysStoppedAnimation<Color>(
+                                              AppColors.primary,
+                                            ),
+                                        minHeight: 8,
                                       ),
                                     ),
                                   ],
                                 ),
                               ),
-                            )
-                          : Column(
-                              children: _whoStats.map((stat) {
-                                final flag =
-                                    _countryFlags[stat.countryName] ?? '🌍';
-                                return Card(
-                                  elevation: 2,
-                                  margin: const EdgeInsets.only(bottom: 12),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(16),
-                                  ),
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(
-                                      AppSizes.paddingL,
-                                    ),
-                                    child: Column(
-                                      children: [
-                                        Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            Row(
-                                              children: [
-                                                Container(
-                                                  width: 50,
-                                                  height: 50,
-                                                  decoration: BoxDecoration(
-                                                    color: AppColors.primary
-                                                        .withOpacity(0.1),
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                          12,
-                                                        ),
-                                                  ),
-                                                  child: Center(
-                                                    child: Text(
-                                                      flag,
-                                                      style: const TextStyle(
-                                                        fontSize: 28,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ),
-                                                const SizedBox(width: 12),
-                                                Column(
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.start,
-                                                  children: [
-                                                    Text(
-                                                      stat.countryName,
-                                                      style: const TextStyle(
-                                                        fontSize: 16,
-                                                        fontWeight:
-                                                            FontWeight.w600,
-                                                      ),
-                                                    ),
-                                                    Text(
-                                                      'Année: ${stat.year}',
-                                                      style: TextStyle(
-                                                        fontSize: 12,
-                                                        color: Colors.grey[600],
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ],
-                                            ),
-                                            Container(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                    horizontal: 12,
-                                                    vertical: 6,
-                                                  ),
-                                              decoration: BoxDecoration(
-                                                color: AppColors.primary
-                                                    .withOpacity(0.1),
-                                                borderRadius:
-                                                    BorderRadius.circular(20),
-                                              ),
-                                              child: Text(
-                                                '${stat.value.toStringAsFixed(1)}',
-                                                style: TextStyle(
-                                                  color: AppColors.primary,
-                                                  fontWeight: FontWeight.w600,
-                                                  fontSize: 14,
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                        const SizedBox(height: 12),
-                                        ClipRRect(
-                                          borderRadius: BorderRadius.circular(
-                                            10,
-                                          ),
-                                          child: LinearProgressIndicator(
-                                            value: (stat.value / 300).clamp(
-                                              0.0,
-                                              1.0,
-                                            ),
-                                            backgroundColor:
-                                                AppColors.surfaceVariant,
-                                            valueColor:
-                                                AlwaysStoppedAnimation<Color>(
-                                                  AppColors.primary,
-                                                ),
-                                            minHeight: 8,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                );
-                              }).toList(),
-                            ),
+                            );
+                          }).toList(),
+                        ),
 
                       const SizedBox(height: 40),
                     ],

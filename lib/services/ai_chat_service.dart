@@ -11,11 +11,11 @@ class AIChatService {
   // 🔑 MÊME CLÉ QUE AI_SERVICE
   // 1. Déclarez une chaîne de remplissage claire (que l'utilisateur doit remplacer)
   static const String _PLACEHOLDER_KEY =
-      'AIzaSyA9KlGdCICCiPJS9YAHu_8P2JXXix_pUQw';// j'ai changé ici 
+      'AIzaSyA9KlGdCICCiPJS9YAHu_8P2JXXix_vUQw';// j'ai changé ici  
 
   // 2. Utilisez la chaîne de remplissage pour la clé déclarée (qui doit être remplacée par l'utilisateur)
   static const String _apiKey =
-      'AIzaSyA9KlGdCICCiPJS9YAHu_8P2JXXix_vUQw'; // L'utilisateur doit remplacer cette ligne !
+      'AIzaSyBl_pn4qPsGPf-JBPt68ix3l5_cuVeks4s'; // L'utilisateur doit remplacer cette ligne !
 
   // late final GenerativeModel _model;
   GenerativeModel? _model; // MODIFIÉ : Rendu optionnel
