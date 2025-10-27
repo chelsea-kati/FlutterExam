@@ -6,6 +6,7 @@ import '../services/db_service.dart'; // Pour récupérer les données agrégée
 import '../widgets/metric_card.dart';
 import '../models/country_stats.dart';
 import '../widgets/bar_chart_card.dart';
+import '../services/who_api_service.dart'; // 💡 AJOUTEZ CET IMPORT
 import 'package:intl/intl.dart'; // 👈 NOUVEAU : Pour formater la date
 
 // Assurez-vous d'avoir les constantes AppColors et AppSizes
@@ -50,15 +51,21 @@ class _StatisticsPageState extends State<StatisticsPage> {
     });
 
     try {
+    // 1. Déclencher la synchronisation externe et la sauvegarde locale
+    // Le service se charge de vérifier l'internet et de sauvegarder dans la DB.
+      await _syncWhoData();  
+      // 2. Récupération des stats patient locales
       final List<Map<String, dynamic>> countryData = await DatabaseService
           .instance
           .getPatientsByCountry();
       final List<Map<String, dynamic>> diseaseData = await DatabaseService
           .instance
           .getPatientsByDisease();
-      // 💡 NOUVEAU : Récupérer les stats de l'OMS
+      // 💡 NOUVEAU : Récupérer les stats de l'OMS MAJ (après la synchro)
       final List<CountryStats> whoStats = await DatabaseService.instance
           .getCountryStats();
+      await _syncWhoData();
+
 
       if (mounted) {
         setState(() {
@@ -78,6 +85,10 @@ class _StatisticsPageState extends State<StatisticsPage> {
                 .map((s) => s.countryCode)
                 .toSet()
                 .length;
+          }else {
+            // Si whoStats est vide après la synchro, s'assurer que l'état reflète cela.
+            _lastWhoSyncDate = null;
+            _uniqueCountryStatsCount = 0;
           }
 
           isLoading = false;
@@ -93,7 +104,24 @@ class _StatisticsPageState extends State<StatisticsPage> {
       }
     }
   }
-
+// 💡 NOUVELLE FONCTION : Logique de Synchronisation Externe
+// ----------------------------------------------------
+Future<void> _syncWhoData() async {
+    print('🔄 Démarrage de la synchronisation des données WHO...');
+    // ✅ LA PAGE N'APPELLE QU'UNE SEULE MÉTHODE DE SYNCHRO
+    await WHOApiService.instance.syncAndSaveCancerStats();
+    // 1. Appeler le service API pour récupérer les données (avec internet ou test data)
+    final List<CountryStats> newStats =
+        await WHOApiService.instance.getCancerStatsByCountry();
+    if (newStats.isNotEmpty) {
+        // 2. Sauvegarder les données récupérées dans la DB locale
+        await DatabaseService.instance.saveCountryStats(newStats);
+        print('✅ ${newStats.length} statistiques WHO sauvegardées localement.');
+    } else {
+        print('⚠️ Aucune nouvelle statistique WHO récupérée.');
+    }
+}  
+  
   @override
   Widget build(BuildContext context) {
     return Scaffold(

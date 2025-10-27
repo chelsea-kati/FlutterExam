@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:connectivity_plus/connectivity_plus.dart';
 import '../models/country_stats.dart';
 import '../models/patient.dart';
+import 'db_service.dart'; // 💡 AJOUTEZ CET IMPORT
 
 class WHOApiService {
   static const String _baseUrl = 'https://ghoapi.azureedge.net/api';
@@ -79,6 +80,7 @@ class WHOApiService {
       return false;
     }
   }
+  
 //   Future<bool> hasInternetConnection() async {
 //   try {
 //     final connectivityResult = await Connectivity().checkConnectivity();
@@ -302,6 +304,29 @@ class WHOApiService {
       return [];
     }
   }
+  // 💡 NOUVELLE MÉTHODE : Synchronisation et Sauvegarde Centralisée
+/// Télécharge les stats de l'OMS (WHO) et les sauvegarde dans la DB locale.
+/// Cette méthode est appelée par StatisticsPageState.
+Future<void> syncAndSaveCancerStats() async {
+  print('🔄 WHOApiService: Démarrage de la synchronisation...');
+  
+  try {
+    // 1. Récupération des données (téléchargement ou données de test)
+    final List<CountryStats> newStats = await getCancerStatsByCountry();
+
+    if (newStats.isNotEmpty) {
+      // 2. Sauvegarde des données via le DatabaseService
+      await DatabaseService.instance.saveCountryStats(newStats);
+      print('✅ WHOApiService: ${newStats.length} statistiques sauvegardées localement.');
+    } else {
+      print('⚠️ WHOApiService: Aucune statistique récupérée pour la sauvegarde.');
+    }
+  } catch (e) {
+    print('❌ WHOApiService: Erreur fatale lors de la synchronisation: $e');
+    // On peut choisir d'ignorer ou de relancer une erreur plus tard
+  }
+}  
+
 }
 
 // Modèle pour les indicateurs de santé
