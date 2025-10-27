@@ -15,7 +15,7 @@ class AIChatService {
 
   // 2. Utilisez la chaîne de remplissage pour la clé déclarée (qui doit être remplacée par l'utilisateur)
   static const String _apiKey =
-      'AIzaSyBl_pn4qPsGPf-JBPt68ix3l5_cuVeks4s'; // L'utilisateur doit remplacer cette ligne !
+      'AIzaSyBl_pn4qPsGPf-JBPt68ix3l5_cuVeks4s'; // La nouvelle clé !
 
   // late final GenerativeModel _model;
   GenerativeModel? _model; // MODIFIÉ : Rendu optionnel
@@ -49,7 +49,7 @@ class AIChatService {
     // 💡 S'assurer que _model est initialisé une seule fois pour tous les patients
     if (_model == null) {
       _model = GenerativeModel(
-        model: 'gemini-pro',
+        model: 'gemini-2.5-flash',
         apiKey: _apiKey,
         generationConfig: GenerationConfig(
           temperature: 0.7,
@@ -203,7 +203,7 @@ Tu es prêt à répondre aux questions du patient.
       return _getLocalAdviceFallback(patient); // Appel de la méthode renommée
     }
 
-    final model = GenerativeModel(model: 'gemini-pro', apiKey: _apiKey);
+    final model = GenerativeModel(model: 'gemini-2.5-flash', apiKey: _apiKey);
 
     final prompt =
         '''

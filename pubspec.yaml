@@ -33,6 +33,7 @@ dependencies:
   sqflite: ^2.3.0
   path: ^1.8.3  
   sqflite_common_ffi: ^2.3.0  # Or the latest version
+  #google_generative_ai: ^0.2.2 # Vérifiez cette version
   http: ^1.1.0 # #Sert à faire des requêtes HTTP vers des API (GET, POST, PUT, DELETE).
   connectivity_plus: ^5.0.0  # Pour vérifier la connexion internet
   async: ^2.11.0 # Pour la fonction Debouncer
