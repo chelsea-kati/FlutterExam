@@ -125,7 +125,9 @@ class WHOApiService {
 
       // URL corrigée avec codes ISO-3
       final url =
-          '$_baseUrl/NCDMORT3070?\$filter=SpatialDim in (${countries.map((c) => "'$c'").join(',')}) and Dim1 eq "TOTL" and Dim2 eq "TOTL"';
+          // '$_baseUrl/NCDMORT3070?\$filter=SpatialDim in (${countries.map((c) => "'$c'").join(',')}) and Dim1 eq "TOTL" and Dim2 eq "TOTL"';
+          // Nouveau code : La liste des pays ne contient plus de guillemets simples (BDI,RWA,...)
+          '$_baseUrl/NCDMORT3070?\$filter=SpatialDim in (${countries.join(',')}) and Dim1 eq "TOTL" and Dim2 eq "TOTL"';
 
       print('Requête API WHO: $url');
 

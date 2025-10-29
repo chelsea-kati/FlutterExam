@@ -32,7 +32,9 @@ class _StatisticsPageState extends State<StatisticsPage> {
   // Stockage des résultats des requêtes DB
   List<Map<String, dynamic>> patientsByCountry = [];
   List<Map<String, dynamic>> patientsByDisease = [];
-  // 👈 AJOUTEZ CECI
+  // NOUVEAU : Variable pour stocker toutes les statistiques WHO
+  List<CountryStats> whoStats = [];
+
   DateTime? _lastWhoSyncDate;
   int _uniqueCountryStatsCount = 0;
 
@@ -51,9 +53,9 @@ class _StatisticsPageState extends State<StatisticsPage> {
     });
 
     try {
-    // 1. Déclencher la synchronisation externe et la sauvegarde locale
-    // Le service se charge de vérifier l'internet et de sauvegarder dans la DB.
-      await _syncWhoData();  
+      // 1. Déclencher la synchronisation externe et la sauvegarde locale
+      // Le service se charge de vérifier l'internet et de sauvegarder dans la DB.
+      await _syncWhoData();
       // 2. Récupération des stats patient locales
       final List<Map<String, dynamic>> countryData = await DatabaseService
           .instance
@@ -62,15 +64,15 @@ class _StatisticsPageState extends State<StatisticsPage> {
           .instance
           .getPatientsByDisease();
       // 💡 NOUVEAU : Récupérer les stats de l'OMS MAJ (après la synchro)
-      final List<CountryStats> whoStats = await DatabaseService.instance
+      final List<CountryStats> newWhoStats = await DatabaseService.instance
           .getCountryStats();
-      await _syncWhoData();
-
+      // await _syncWhoData();
 
       if (mounted) {
         setState(() {
           patientsByCountry = countryData;
           patientsByDisease = diseaseData;
+          whoStats = newWhoStats; // ⬅️ ASSUREZ-VOUS QUE C'EST BIEN FAIT
           // Calculer les métadonnées WHO
           if (whoStats.isNotEmpty) {
             // Trouver la date de mise à jour la plus récente (s'assurer qu'elle est un DateTime)
@@ -85,7 +87,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
                 .map((s) => s.countryCode)
                 .toSet()
                 .length;
-          }else {
+          } else {
             // Si whoStats est vide après la synchro, s'assurer que l'état reflète cela.
             _lastWhoSyncDate = null;
             _uniqueCountryStatsCount = 0;
@@ -104,24 +106,25 @@ class _StatisticsPageState extends State<StatisticsPage> {
       }
     }
   }
-// 💡 NOUVELLE FONCTION : Logique de Synchronisation Externe
-// ----------------------------------------------------
-Future<void> _syncWhoData() async {
+
+  // 💡 NOUVELLE FONCTION : Logique de Synchronisation Externe
+  // ----------------------------------------------------
+  Future<void> _syncWhoData() async {
     print('🔄 Démarrage de la synchronisation des données WHO...');
     // ✅ LA PAGE N'APPELLE QU'UNE SEULE MÉTHODE DE SYNCHRO
     await WHOApiService.instance.syncAndSaveCancerStats();
     // 1. Appeler le service API pour récupérer les données (avec internet ou test data)
-    final List<CountryStats> newStats =
-        await WHOApiService.instance.getCancerStatsByCountry();
+    final List<CountryStats> newStats = await WHOApiService.instance
+        .getCancerStatsByCountry();
     if (newStats.isNotEmpty) {
-        // 2. Sauvegarder les données récupérées dans la DB locale
-        await DatabaseService.instance.saveCountryStats(newStats);
-        print('✅ ${newStats.length} statistiques WHO sauvegardées localement.');
+      // 2. Sauvegarder les données récupérées dans la DB locale
+      await DatabaseService.instance.saveCountryStats(newStats);
+      print('✅ ${newStats.length} statistiques WHO sauvegardées localement.');
     } else {
-        print('⚠️ Aucune nouvelle statistique WHO récupérée.');
+      print('⚠️ Aucune nouvelle statistique WHO récupérée.');
     }
-}  
-  
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -140,7 +143,7 @@ Future<void> _syncWhoData() async {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildSyncStatusCard(),
+                    _buildSyncStatusCard(), // Statut des patients (Total)
                     const SizedBox(height: AppSizes.paddingXL),
 
                     // Graphique 1 : Patients par Maladie
@@ -166,10 +169,14 @@ Future<void> _syncWhoData() async {
                           ),
 
                     const SizedBox(height: AppSizes.paddingXL),
-
-                    // Place pour les Stats WHO (Taux de Mortalité)
-                    _buildSectionTitle('Statut de Sync WHO'),
-                    _buildWhoStats(),
+                    // 3. STATUT DE SYNCHRONISATION WHO (Carte Verte/Rouge)
+                    _buildWhoSyncStatusCard(),
+                    const SizedBox(height: AppSizes.paddingXL),
+                    // 4. 💡 DÉTAILS DES STATISTIQUES WHO (LISTE PAYS PAR PAYS)
+                    // N'affiche la liste que si des données ont été synchronisées (whoStats n'est pas vide)
+                    if (_uniqueCountryStatsCount > 0)
+                      _buildWhoMortalityDetails(),
+                    const SizedBox(height: AppSizes.paddingXL),
                   ],
                 ),
               ),
@@ -261,37 +268,97 @@ Future<void> _syncWhoData() async {
     );
   }
 
+  /// Construit la liste détaillée des taux de mortalité de l'OMS par pays.
+  Widget _buildWhoMortalityDetails() {
+    // Assurez-vous que la variable whoStats est bien peuplée dans _loadStatistics()
+    if (whoStats.isEmpty) {
+      return const SizedBox.shrink(); // Ne rien afficher si aucune donnée WHO
+    }
+
+    // Trier les statistiques par pays pour une meilleure lisibilité
+    whoStats.sort((a, b) => a.countryName.compareTo(b.countryName));
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionTitle('Taux de Mortalité OMS par Pays'),
+        const SizedBox(height: 10),
+
+        // Liste des détails par pays
+        ...whoStats.map((stat) {
+          // Formate la valeur du taux de mortalité
+          final formattedValue = NumberFormat.decimalPattern().format(
+            stat.value,
+          );
+
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+            child: Card(
+              elevation: 1,
+              child: ListTile(
+                title: Text(
+                  '${stat.countryName} (${stat.year})',
+                  style: const TextStyle(fontWeight: FontWeight.w600),
+                ),
+                trailing: Text(
+                  '$formattedValue',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.red,
+                  ),
+                ),
+                subtitle: Text('Indicateur: ${stat.indicator}'),
+              ),
+            ),
+          );
+        }).toList(),
+      ],
+    );
+  }
+
   /// Placeholder pour le Statut de Sync WHO (utilise la table country_stats)
-  Widget _buildWhoStats() {
-    // NOTE: Pour une démonstration MVP, nous allons simuler les données ou utiliser
-    // la dernière entrée de la table 'country_stats'.
-    // Formater la date
+  Widget _buildWhoSyncStatusCard() {
+    // Simulez le statut à partir des variables d'état
     final String syncDateText = _lastWhoSyncDate != null
         ? DateFormat('dd/MM/yyyy à HH:mm').format(_lastWhoSyncDate!)
         : 'Jamais synchronisé';
 
-    final bool isSynced = _lastWhoSyncDate != null;
+    final bool isSynced = _uniqueCountryStatsCount > 0;
 
-    // Pour l'MVP, affichons un statut simple :
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      color: Colors.lightGreen.shade50,
-      child: ListTile(
-        leading: Icon(
-          isSynced ? Icons.sync_alt : Icons.warning_amber,
-          color: isSynced ? Colors.green : Colors.red,
-        ),
-        title: Text('Statut de Synchronisation OMS'),
-        subtitle: Text(
-          // 💡 NOUVEAU : Texte dynamique
-          isSynced
-              ? 'Dernière synchronisation réussie le $syncDateText. Données de mortalité à jour pour $_uniqueCountryStatsCount pays.'
-              : 'Données WHO non disponibles ou synchronisation requise.',
-        ),
-        trailing: Icon(
-          isSynced ? Icons.check_circle : Icons.error,
-          color: isSynced ? Colors.green : Colors.red,
+    // Définir les couleurs et icônes
+    final Color color = isSynced ? Colors.green.shade700 : Colors.red.shade700;
+    final Color bgColor = isSynced
+        ? Colors.lightGreen.shade50
+        : Colors.red.shade50;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      child: Card(
+        elevation: 4,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        color: bgColor,
+        child: ListTile(
+          contentPadding: const EdgeInsets.all(12.0),
+          leading: Icon(
+            isSynced ? Icons.sync_alt : Icons.warning_amber,
+            color: color,
+            size: 30,
+          ),
+          title: Text(
+            'Statut de Synchronisation OMS',
+            style: TextStyle(fontWeight: FontWeight.bold, color: color),
+          ),
+          subtitle: Text(
+            isSynced
+                ? 'Dernière synchronisation réussie le $syncDateText. Données de mortalité à jour pour $_uniqueCountryStatsCount pays.'
+                : 'Données WHO non disponibles ou synchronisation requise. Vérifiez votre connexion.',
+            style: TextStyle(color: color.withOpacity(0.9)),
+          ),
+          trailing: Icon(
+            isSynced ? Icons.check_circle : Icons.error,
+            color: color,
+            size: 30,
+          ),
         ),
       ),
     );
