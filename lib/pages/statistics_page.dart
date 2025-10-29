@@ -34,6 +34,49 @@ class _StatisticsPageState extends State<StatisticsPage> {
   List<Map<String, dynamic>> patientsByDisease = [];
   // NOUVEAU : Variable pour stocker toutes les statistiques WHO
   List<CountryStats> whoStats = [];
+  /// Fusionne les données locales des patients avec les statistiques OMS.
+List<Map<String, dynamic>> _getMergedCountryData() {
+  // Créer un Map pour un accès rapide aux stats WHO par code pays
+  final Map<String, CountryStats> whoStatsMap = {};
+  for (var stat in whoStats) {
+    // Utiliser le code pays (si unique ou prendre la dernière entrée)
+    // Ici, nous supposons que whoStats a déjà été filtré ou trié pour la pertinence
+    whoStatsMap[stat.countryCode] = stat;
+  }
+  final List<Map<String, dynamic>> mergedData = [];
+
+  // Parcourir les données locales des patients (patientsByCountry)
+  for (var patientData in patientsByCountry) {
+    final String countryCode = patientData['code'] as String;
+    final int patientCount = patientData['count'] as int;
+    
+    // Initialiser les valeurs WHO à zéro ou null
+    double whoValue = 0.0;
+    String whoIndicator = '';
+
+    // Tenter de trouver la stat WHO correspondante
+    final CountryStats? whoStat = whoStatsMap[countryCode];
+
+    if (whoStat != null) {
+      whoValue = whoStat.value;
+      whoIndicator = whoStat.indicator;
+    }
+
+    // Ajouter les données fusionnées
+    mergedData.add({
+      'country': patientData['pays'], // Nom du pays
+      'local_count': patientCount,   // Nombre de patients locaux
+      'who_value': whoValue,         // Taux de mortalité WHO
+      'who_indicator': whoIndicator, // Indicateur WHO
+    });
+  }
+  
+  // Trier par nombre de patients locaux
+  mergedData.sort((a, b) => (b['local_count'] as int).compareTo(a['local_count'] as int));
+
+  return mergedData;
+}
+
 
   DateTime? _lastWhoSyncDate;
   int _uniqueCountryStatsCount = 0;
@@ -127,6 +170,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final mergedCountryData = _getMergedCountryData(); // ⬅️ NOUVEL APPEL
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -136,10 +180,12 @@ class _StatisticsPageState extends State<StatisticsPage> {
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
+          
           : RefreshIndicator(
               onRefresh: _loadStatistics,
               child: SingleChildScrollView(
                 padding: const EdgeInsets.all(AppSizes.paddingL),
+                
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -160,14 +206,16 @@ class _StatisticsPageState extends State<StatisticsPage> {
                     const SizedBox(height: AppSizes.paddingXL),
 
                     // Graphique 2 : Patients par Pays
-                    _buildSectionTitle('Patients par Pays'),
-                    patientsByCountry.isEmpty
-                        ? const Text('Aucune donnée pays disponible.')
+                    
+                    _buildSectionTitle('Patients (Local) vs Taux Mortalité (OMS)'),
+                    mergedCountryData.isEmpty
+                        ? const Text('Aucune donnée pays/OMS disponible.')
                         : BarChartCard(
-                            labelKey: 'pays',
-                            data: patientsByCountry,
-                          ),
-
+                          // La nouvelle clé pour le nom du pays est 'country'
+                          labelKey: 'country', 
+                          data: mergedCountryData,
+                        ),
+ 
                     const SizedBox(height: AppSizes.paddingXL),
                     // 3. STATUT DE SYNCHRONISATION WHO (Carte Verte/Rouge)
                     _buildWhoSyncStatusCard(),
