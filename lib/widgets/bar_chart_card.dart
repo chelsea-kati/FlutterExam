@@ -47,8 +47,9 @@ class BarChartCard extends StatelessWidget {
 
     for (int i = 0; i < chartData.length; i++) {
       final item = chartData[i];
-      final label = item[labelKey].toString().split(' ')[0];
-      final double count = (item[valueKey] as num?)?.toDouble() ?? 0;
+      // final label = item[labelKey].toString().split(' ')[0];
+      final label = (item[labelKey] as String? ?? 'N/A').split(' ')[0];
+      final double count = (item[valueKey] as num?)?.toDouble() ?? 0.0;
 
       labels.add(label);
       values.add(count.toInt());

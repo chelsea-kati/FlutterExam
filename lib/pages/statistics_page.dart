@@ -47,8 +47,9 @@ List<Map<String, dynamic>> _getMergedCountryData() {
 
   // Parcourir les données locales des patients (patientsByCountry)
   for (var patientData in patientsByCountry) {
-    final String countryCode = patientData['code'] as String;
-    final int patientCount = patientData['count'] as int;
+    final String countryCode = patientData['code'] as String? ?? '??'; // Code pays par défaut
+    final int patientCount = patientData['count'] as int? ?? 0;        // 0 patient par défaut
+    final String countryName = patientData['pays'] as String? ?? 'Pays Inconnu'; // Nom du pays
     
     // Initialiser les valeurs WHO à zéro ou null
     double whoValue = 0.0;
