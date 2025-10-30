@@ -1,59 +1,25 @@
-// lib/models/sponsor.dart
+// lib/models/sponsor.dart (MISE À JOUR)
 
 class Sponsor {
-  final int? id;
-  final String nom;
-  final String type; // Ex: 'ONG', 'Gouvernement', 'Entreprise'
-  final String? logoUrl;
-  final String? siteWeb;
-  final DateTime? dateAdhesion;
+  final int id;
+  final String name;
+  final String imageUrl;
+  final String description;
+  final String websiteUrl;
+  
+  // ✅ NOUVEAUX CHAMPS POUR L'OBJECTIF
+  final String targetDisease; 
+  final String targetCountry; 
 
   Sponsor({
-    this.id,
-    required this.nom,
-    required this.type,
-    this.logoUrl,
-    this.siteWeb,
-    this.dateAdhesion,
+    required this.id,
+    required this.name,
+    required this.imageUrl,
+    required this.description,
+    required this.websiteUrl,
+    required this.targetDisease, // AJOUTÉ
+    required this.targetCountry, // AJOUTÉ
   });
 
-  // Convertir Sponsor vers Map (pour SQLite)
-  Map<String, dynamic> toMap() {
-    return {
-      'id': id,
-      'nom': nom,
-      'type': type,
-      'logoUrl': logoUrl,
-      'siteWeb': siteWeb,
-      'dateAdhesion': dateAdhesion?.toIso8601String(),
-    };
-  }
-
-  // Créer Sponsor depuis Map (depuis SQLite)
-  factory Sponsor.fromMap(Map<String, dynamic> map) {
-    return Sponsor(
-      id: map['id']?.toInt(),
-      nom: map['nom'] ?? '',
-      type: map['type'] ?? '',
-      logoUrl: map['logoUrl'],
-      siteWeb: map['siteWeb'],
-      dateAdhesion: map['dateAdhesion'] != null
-          ? DateTime.parse(map['dateAdhesion'])
-          : null,
-    );
-  }
-
-  @override
-  String toString() {
-    return 'Sponsor{id: $id, nom: $nom, type: $type}';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    return other is Sponsor && other.id == id;
-  }
-
-  @override
-  int get hashCode => id.hashCode;
+  // ... (Factory fromMap si nécessaire)
 }

@@ -3,7 +3,7 @@ import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import '../models/patient.dart';
 import '../models/country_stats.dart';
-import '../models/sponsor.dart';
+import '../models/Sponsor.dart';
 import '../models/Conseil.dart'; // Renommé 'advice.dart' pour le modèle Conseil dans les étapes précédentes
 
 class DatabaseService {

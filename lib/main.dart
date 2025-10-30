@@ -11,6 +11,7 @@ import 'pages/add_patient.dart';
 import 'pages/statistics_page.dart';
 import 'services/ai_chat_service.dart';
 import 'pages/ai_chat_page.dart';
+import 'pages/SponsorPage.dart';
 // import 'package:firebase_core/firebase_core.dart';
 // Importez le fichier d'options généré par FlutterFire CLI
 //import 'firebase_options.dart';
@@ -73,9 +74,9 @@ class _MainNavigationState extends State<MainNavigation> {
   // mémoriser quel onglet est actuellement sélectionné dans votre barre de navigation en bas.
 
   final List<Widget> _pages = [
-    const HomePage(), // ← Plus de gestion de navigation ici
+    const HomePage(), 
     const StatisticsPage(),
-    const SponsorsPage(),
+    const SponsorPage(),
     const ProfilePage(),
   ];
 
@@ -152,28 +153,28 @@ class ActualStatisticsPage extends StatelessWidget {
   }
 }
 
-class SponsorsPage extends StatelessWidget {
-  const SponsorsPage({super.key});
+// class SponsorsPage extends StatelessWidget {
+//   const SponsorsPage({super.key});
 
-  @override
-  Widget build(BuildContext context) {
-    return PlaceholderPage(
-      title: AppStrings.sponsors,
-      icon: Icons.people_rounded,
-      mainText: 'Page des Sponsors',
-      subtitle: 'Partenaires et contributeurs',
-      showAppBar: true,
-      action: ElevatedButton(
-        onPressed: () {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Fonctionnalité bientôt disponible!')),
-          );
-        },
-        child: const Text('Voir les sponsors'),
-      ),
-    );
-  }
-}
+//   @override
+//   Widget build(BuildContext context) {
+//     return PlaceholderPage(
+//       title: AppStrings.sponsors,
+//       icon: Icons.people_rounded,
+//       mainText: 'Page des Sponsors',
+//       subtitle: 'Partenaires et contributeurs',
+//       showAppBar: true,
+//       action: ElevatedButton(
+//         onPressed: () {
+//           ScaffoldMessenger.of(context).showSnackBar(
+//             const SnackBar(content: Text('Fonctionnalité bientôt disponible!')),
+//           );
+//         },
+//         child: const Text('Voir les sponsors'),
+//       ),
+//     );
+//   }
+// }
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
