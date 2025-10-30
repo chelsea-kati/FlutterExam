@@ -132,7 +132,8 @@ class WHOApiService {
      final countryFilter = countries.map((c) => "SpatialDim eq '$c'").join(' or ');
      // Construire l'URL
       // ✅ LIGNE CORRIGÉE
-      final url = '$_baseUrl/NCDMORT3070?\$filter=($countryFilter) and Dim1 eq \'TOTL\' and Dim2 eq \'TOTL\'';
+      final url = '$_baseUrl/NCDMORT3070?\$filter=($countryFilter)';//❌ Ne retourne rien
+      // final url = '$_baseUrl/NCD_MORT_CANCER?\$filter=($countryFilter)'; // ✅ Plus de c
       print('Requête API WHO: $url');
 
       final response = await http

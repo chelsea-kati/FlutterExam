@@ -5,6 +5,7 @@ import '../models/patient.dart';
 import '../models/country_stats.dart';
 import '../models/Sponsor.dart';
 import '../models/Conseil.dart'; // Renommé 'advice.dart' pour le modèle Conseil dans les étapes précédentes
+// import '../services/sponsor_service.dart'; // Importer le service des sponsors
 
 class DatabaseService {
   static Database? _database;
@@ -113,16 +114,19 @@ class DatabaseService {
 
     // ✨ NOUVEAU : Table des sponsors
     await db.execute('''
- CREATE TABLE sponsors (
- id INTEGER PRIMARY KEY AUTOINCREMENT,
- nom TEXT,
- type TEXT,
- logoUrl TEXT,
- siteWeb TEXT,
- dateAdhesion TEXT
- )
- ''');
+CREATE TABLE sponsors (
+ id INTEGER PRIMARY KEY,
+ nom TEXT NOT NULL, 
+ logoUrl TEXT,
+ siteWeb TEXT,
+ description TEXT, 
+ targetDisease TEXT, 
+ targetCountry TEXT 
+ )
+ ''');
     print('✅ Table Sponsors créée');
+    // 💡 NOUVEL APPEL : Insérer les sponsors par défaut juste après la création de la table
+    await insertInitialSponsors(db);
   }
 
   // Données de test
@@ -287,7 +291,51 @@ class DatabaseService {
     print('✅ ${initialConseils.length} conseils insérés (si non existants).');
   }
   // ------------------------------------------------------------------
+Future<void> insertInitialSponsors(Database db) async {
+  print('🔄 Insertion des données de sponsors par défaut...');
 
+  final initialSponsors = [
+    Sponsor(
+    id: 1,
+    name: 'Santé Plus (Maladie A)', // 👈 'name' au lieu de 'nom'
+    imageUrl: 'assets/images/logo_sante_plus.png',
+    websiteUrl: 'https://santeplus.org',
+    // ✅ AJOUT DES CHAMPS OBLIGATOIRES par le constructeur du modèle :
+    description: 'Leader en solutions de santé numérique.', 
+    targetDisease: 'Paludisme',
+    targetCountry: 'Burundi'
+  ).toMap(),
+Sponsor(
+    id: 2,
+    name: 'Global Aid (Maladie B)', // 👈 Utiliser 'name' au lieu de 'nom'
+    imageUrl: 'assets/images/logo_global_aid.png',
+    websiteUrl: 'https://globalaid.org',    
+    description: 'Financement de projets humanitaires pour les régions touchées par les maladies.', 
+    targetDisease: 'Choléra',
+    targetCountry: 'Rwanda',
+  ).toMap(),
+
+    Sponsor(
+    id: 3,
+    name: 'Tech for Health (Maladie C)', // 👈 Utiliser 'name' au lieu de 'nom'
+    imageUrl: 'assets/images/logo_tech_health.png',
+    websiteUrl: 'https://techforhealth.net',    
+    description: 'Fournisseur de solutions technologiques pour le suivi des patients.',
+    targetDisease: 'COVID-19',
+    targetCountry: 'RDC',
+  ).toMap(),
+  ];
+
+  for (var sponsorMap in initialSponsors) {
+    // ⚠️ Note : Nous utilisons la colonne 'sponsors' et non 'Sponsors'
+    await db.insert(
+      'sponsors', 
+      sponsorMap,
+      conflictAlgorithm: ConflictAlgorithm.ignore,
+    );
+  }
+  print('✅ ${initialSponsors.length} sponsors insérés (si non existants).');
+}
   // CREATE - Ajouter un nouveau patient
   Future<int> insertPatient(Patient patient) async {
     // ... (Logique inchangée)
