@@ -3,6 +3,8 @@
 import 'package:flutter/material.dart';
 import '../models/sponsor.dart';
 import '../services/sponsor_service.dart';
+import 'package:url_launcher/url_launcher.dart';
+import '../widgets/metric_card.dart';
 
 class SponsorPage extends StatefulWidget {
   const SponsorPage({super.key});
@@ -82,17 +84,35 @@ class SponsorCard extends StatelessWidget {
                 // Simuler l'image du logo (utilisez Image.asset si vous ajoutez des assets)
                 CircleAvatar(
                   radius: 30,
-                  backgroundColor: const Color(0xFFE67E22).withOpacity(0.1),
-                  child: const Icon(Icons.business, color: Color(0xFFE67E22)),
+                  backgroundColor: AppColors.primaryLight, // Couleur de fond si l'image n'est pas chargée
+                  child: ClipOval( // Pour s'assurer que l'image est bien coupée en cercle
+                  child: Image.asset(
+                    sponsor.imageUrl, // C'est ici que le chemin 'assets/images/logo_*.png' est utilisé
+                    width: 60,  // 2 * radius
+                    height: 60, // 2 * radius
+                    fit: BoxFit.cover,// Assure que l'image couvre l'espace
+                    // Gestion d'erreur (si l'asset n'est pas trouvé)
+                    errorBuilder: (context, error, stackTrace) {
+                      return Icon(
+                        Icons.people_rounded,
+                        size: 30,
+                        color: Colors.grey[400]);
+                    },
+                  ),
+                      ),
                 ),
-                const SizedBox(width: 16),
-                Text(
+                const SizedBox(width: 16),         
+                Expanded(
+                 child: Text(
                   sponsor.name,
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                     color: Color(0xFF6C63FF),
                   ),
+                  maxLines:2,
+                  overflow: TextOverflow.ellipsis,
+                ),
                 ),
               ],
             ),
@@ -106,9 +126,20 @@ class SponsorCard extends StatelessWidget {
             // Lien vers le site web
             InkWell(
               // TODO: Implémenter le lancement d'URL (package url_launcher)
-              onTap: () {
-                // print('Lien vers: ${sponsor.websiteUrl}');
-                // url_launcher.launchUrl(Uri.parse(sponsor.websiteUrl));
+              onTap: ()  async{
+                // La fonction pour lancer l'URL
+                final Uri url = Uri.parse(sponsor.websiteUrl);
+                // Vérifiez si l'URL peut être lancée sur la plateforme actuelle
+                if (await canLaunchUrl(url)) {
+                  // await launchUrl(url); si oui, lancez-la
+                } else {
+                  // Sinon, affichez une erreur (Snack Bar)
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Impossible d\'ouvrir le lien: ${sponsor.websiteUrl}')),
+                    );
+                  }
+                }
               },
               child: Text(
                 'Visiter le site',

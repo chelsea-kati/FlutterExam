@@ -131,8 +131,8 @@ class WHOApiService {
           // Construire la liste de filtres: SpatialDim eq 'BDI' or SpatialDim eq 'RWA' or ...
      final countryFilter = countries.map((c) => "SpatialDim eq '$c'").join(' or ');
      // Construire l'URL
-     final url = '$_baseUrl/NCDMORT3070?\$filter=$countryFilter and Dim1 eq "TOTL" and Dim2 eq "TOTL"';
-
+      // ✅ LIGNE CORRIGÉE
+      final url = '$_baseUrl/NCDMORT3070?\$filter=($countryFilter) and Dim1 eq \'TOTL\' and Dim2 eq \'TOTL\'';
       print('Requête API WHO: $url');
 
       final response = await http
