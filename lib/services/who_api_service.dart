@@ -108,7 +108,8 @@ class WHOApiService {
 
       // 🎯 MODIFICATION 1 : Utiliser l'indicateur plus fiable NCD_MORT_CANCER
       //  final url = '$_baseUrl/NCD_MORT_CANCER?\$filter=($countryFilter)';
-      final url = '$_baseUrl/NCDMORT3070?\$filter=($countryFilter) and Dim1 eq \'TOTL\' and Dim2 eq \'TOTL\'';
+      
+          final url = '$_baseUrl/NCDMORT3070?\$filter=($countryFilter)';
       print('Requête API WHO: $url');
 
       final response = await http
