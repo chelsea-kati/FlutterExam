@@ -50,7 +50,9 @@ dependencies:
   # Optionnel : Authentification (si vous voulez sécuriser l'accès)
   firebase_auth: ^4.15.3
   url_launcher: ^6.2.1 #sert à lancer (ouvrir) des URL ou des schémas d'URL (URI) externes à votre application Flutter.
-  
+  crypto: ^3.0.3 # Pour le hachage des mots de passe
+  image_picker: ^0.8.7+5 # Pour sélectionner des images depuis la galerie ou la caméra
+  path_provider: ^2.0.15 # Pour Pour sauvegarder l'image localement 
 
 
   # The following adds the Cupertino Icons font to your application.
@@ -83,7 +85,8 @@ flutter:
 
   # To add assets to your application, add an assets section, like this:
   assets:
-  - assets/images/
+  - assets/images/marcelo-leal-k7ll1hpdhFA-unsplash.jpg
+
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
 

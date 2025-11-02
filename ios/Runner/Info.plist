@@ -28,6 +28,15 @@
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>
 	<string>Main</string>
+
+	<!-- ✅ PERMISSIONS IOS -->
+	<key>NSPhotoLibraryUsageDescription</key>
+    <string>Nous avons besoin d'accéder à votre galerie pour choisir une photo de profil.</string>
+    <key>NSCameraUsageDescription</key>
+    <string>Nous avons besoin d'accéder à votre caméra pour prendre une photo de profil.</string>
+    <key>NSMicrophoneUsageDescription</key>
+    <string>Nous avons besoin d'accéder à votre microphone pour les vidéos.</string>
+
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
