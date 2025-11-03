@@ -28,7 +28,8 @@ class _AIChatPageState extends State<AIChatPage> {
     _messages.add(
       ChatMessage(
         text:
-            'Bonjour ${widget.patient.prenom} 👋\n\nJe suis votre assistant médical virtuel. Je peux répondre à vos questions sur ${widget.patient.maladie}, les médicaments, l\'alimentation et plus encore.\n\nComment puis-je vous aider aujourd\'hui ?',
+          // Le message s'adresse au MÉDECIN et présente le contexte du patient
+            '**Contexte Patient** : ${widget.patient.prenom} (Maladie: ${widget.patient.maladie}).👋\n\n**Assistant** :Bonjour Dr. Je suis votre copilote IA pour ce patient. Posez-moi des questions sur sa posologie, les interactions médicamenteuses, ou des conseils spécifiques à sa maladie.',
         isFromUser: false,
         timestamp: DateTime.now(),
         source: MessageSource.ai,
@@ -167,20 +168,16 @@ class _AIChatPageState extends State<AIChatPage> {
                         shape: BoxShape.circle,
                         border: Border.all(color: Colors.white, width: 2.5),
                       ),
-                      child: CircleAvatar(
+                      child: CircleAvatar(// Changement de l'avatar pour symboliser l'Assistant IA
                         radius: 28,
                         backgroundColor: Colors.white,
-                        child: Text(
-                          widget.patient.prenom[0].toUpperCase() +
-                              widget.patient.nom[0].toUpperCase(),
-                          style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                            color: patientColor,
+                        child: Icon(
+                          Icons.smart_toy_outlined, // Icône pour l'Assistant IA
+                          size: 30,
+                          color: Colors.blueGrey,   
                           ),
                         ),
                       ),
-                    ),
 
                     const SizedBox(width: 12),
 
@@ -190,7 +187,7 @@ class _AIChatPageState extends State<AIChatPage> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            widget.patient.nomComplet,
+                            'Assistant Médical - Patient: ${widget.patient.nomComplet}', // Nouveau titre
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 18,

@@ -130,7 +130,7 @@ class _LoginPageState extends State<LoginPage> {
           // 1. Image de fond
           image: DecorationImage(
             // ⚠️ Assurez-vous que le chemin est correct !
-            image: const AssetImage('assets/images/medical_background.jpg'),
+            image: const AssetImage('assets/images/marcelo-leal-k7ll1hpdhFA-unsplash.jpg'),
             fit: BoxFit.cover,
             // 2. Filtre de couleur pour l'éclaircir et le lier à votre thème
             colorFilter: ColorFilter.mode(

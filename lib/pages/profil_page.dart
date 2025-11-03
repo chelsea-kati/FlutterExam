@@ -9,6 +9,8 @@ import 'login_page.dart';
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
 
+  
+
   @override
   Widget build(BuildContext context) {
     final authService = AuthService.instance;
@@ -119,8 +121,60 @@ class ProfilePage extends StatelessWidget {
   }
 
   // Dialogue de confirmation de déconnexion
+// 🚨 CORRECTION À APPORTER À CETTE MÉTHODE :
   Future<void> _showLogoutDialog(BuildContext context) async {
-    // ... (Implémentation de _showLogoutDialog) ...
-    throw UnimplementedError();
+    final authService = AuthService.instance;
+
+    final shouldLogout = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Déconnexion'),
+          content: const Text('Êtes-vous sûr de vouloir vous déconnecter ?'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false), // Annuler
+              child: Text(
+                'Annuler',
+                style: TextStyle(color: AppColors.textSecondary),
+              ),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true), // Confirmer
+              child: const Text('Se déconnecter'),
+            ),
+          ],
+        );
+      },
+    );
+
+    // 1. L'utilisateur a confirmé la déconnexion
+    if (shouldLogout == true) {
+      // Afficher un indicateur de chargement (Optionnel mais recommandé)
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+
+      // 2. Appel de la fonction de déconnexion (qui doit nettoyer le token)
+      await authService.logout();
+
+      // S'assurer que le widget est toujours monté
+      if (context.mounted) {
+        // 3. Fermer l'indicateur de chargement
+        Navigator.of(context).pop();
+
+        // 4. Navigation vers la page de connexion
+        // Ceci est la partie CRITIQUE : on utilise pushAndRemoveUntil
+        // pour retirer toutes les pages (y compris le Home) de la pile.
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (context) => const LoginPage()),
+          (Route<dynamic> route) => false, // Retourne false pour toutes les routes
+        );
+      }
+    }
   }
 }

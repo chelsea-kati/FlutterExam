@@ -63,8 +63,7 @@ class AIChatService {
     // Contexte initial du patient pour l'IA
     final systemPrompt =
         '''
-Tu es un assistant médical virtuel expert et bienveillant.
-
+Tu es un **Co-Pilote d'Aide à la Décision Clinique**. Tu assistes un médecin dans la prise en charge d'un patient donné.
 Informations du patient actuel :
 - Nom : ${patient.nomComplet}
 - Âge : ${patient.age} ans
@@ -73,24 +72,24 @@ Informations du patient actuel :
 - Conseils actuels : ${patient.conseils ?? 'Aucun'}
 
 Consignes IMPORTANTES :
-1. Réponds TOUJOURS en français simple
-2. Sois empathique et rassurant
-3. Adapte tes réponses à ${patient.maladie}
-4. Considère le contexte africain (${patient.pays})
-5. Pour les médicaments, donne des conseils généraux mais rappelle de consulter le médecin
-6. Si question dangereuse/urgente, recommande immédiatement de consulter
+1. Réponds TOUJOURS au **médecin** qui est ton interlocuteur.
+2. Fournis des **recommandations professionnelles et factuelles** basées sur le profil du patient.
+3. Réfère-toi au patient en utilisant "le patient" ou son nom, pas "vous".
+4.Adapte tes réponses à ${patient.maladie} et au contexte africain (${patient.pays}).
+5. Limite tes réponses à 4-5 phrases maximum.
+6. Ne donne jamais de diagnostic, mais des pistes de conseils.
 7. Reste dans ton domaine médical, ne réponds pas aux questions hors sujet
-8. Limite tes réponses à 3-4 phrases maximum
 
-Tu es prêt à répondre aux questions du patient.
-''';
+
+Tu es prêt à assister le médecin dans la prise en charge de ce patient.''';
 
     _chatSession = _model!.startChat(
       history: [
         Content.text(systemPrompt),
         Content.model([
           TextPart(
-            'Je comprends. Je suis prêt à aider ${patient.prenom} avec des conseils médicaux adaptés à ${patient.maladie}.',
+            // Nouvelle réponse de l'IA après le prompt système
+            'Je suis en ligne. Contexte du patient **${patient.nomComplet}** chargé. Quelle est votre question clinique, Docteur ?',
           ),
         ]),
       ],
@@ -134,57 +133,59 @@ Tu es prêt à répondre aux questions du patient.
     }
   }
 
-  // Réponses offline basées sur mots-clés
-  ChatResponse _getOfflineResponse(String userMessage) {
-    final lowerMessage = userMessage.toLowerCase();
-    String response;
+  // Réponses offline basées sur mots-clés (VERSION COMPLÈTE ET CORRIGÉE)
+ ChatResponse _getOfflineResponse(String userMessage) {
+ final lowerMessage = userMessage.toLowerCase();
+ String response;
 
-    // Détection par mots-clés (votre code original, inchangé)
-    if (lowerMessage.contains('médicament') ||
-        lowerMessage.contains('medicament') ||
-        lowerMessage.contains('traitement') ||
-        lowerMessage.contains('pilule')) {
-      response =
-          'Pour les médicaments de ${_currentPatient!.maladie}, il est essentiel de les prendre régulièrement aux heures prescrites. Ne jamais arrêter sans avis médical. En cas d\'oubli, consultez la notice ou votre médecin.';
-    } else if (lowerMessage.contains('manger') ||
-        lowerMessage.contains('aliment') ||
-        lowerMessage.contains('nutrition') ||
-        lowerMessage.contains('nourriture')) {
-      response =
-          'Pour ${_currentPatient!.maladie}, privilégiez les fruits frais, légumes, et évitez les aliments transformés. Buvez beaucoup d\'eau. Une alimentation équilibrée aide au traitement.';
-      // 👇👇 AJOUTS IMPORTANTS 👇👇
-    } else if (lowerMessage.contains('douleur') ||
-        lowerMessage.contains('mal') ||
-        lowerMessage.contains('souffrance')) {
-      response =
-          'Si vous ressentez une douleur inhabituelle, notez son intensité et sa localisation. Contactez votre médecin si la douleur persiste ou s\'intensifie. Ne prenez pas de médicaments sans avis médical.';
-    } else if (lowerMessage.contains('exercice') ||
-        lowerMessage.contains('sport') ||
-        lowerMessage.contains('activité')) {
-      response =
-          'L\'exercice physique léger est bénéfique pour ${_currentPatient!.maladie}. Commencez doucement : marche de 15-20 minutes par jour. Écoutez votre corps et reposez-vous si nécessaire.';
-    } else if (lowerMessage.contains('fatigue') ||
-        lowerMessage.contains('fatigué') ||
-        lowerMessage.contains('énergie')) {
-      response =
-          'La fatigue est courante avec ${_currentPatient!.maladie}. Dormez suffisamment (7-8h), faites des siestes courtes si besoin, et mangez des aliments nutritifs. Si la fatigue est excessive, consultez votre médecin.';
-    } else if (lowerMessage.contains('stress') ||
-        lowerMessage.contains('anxiété') ||
-        lowerMessage.contains('peur') ||
-        lowerMessage.contains('inquiet')) {
-      response =
-          'Le stress peut affecter votre santé. Pratiquez la respiration profonde, parlez à vos proches, rejoignez un groupe de soutien. Votre bien-être mental est aussi important que votre santé physique.';
-    } else if (lowerMessage.contains('urgence') ||
-        lowerMessage.contains('grave') ||
-        lowerMessage.contains('danger')) {
-      response =
-          '🚨 Si vous avez une urgence médicale (difficulté à respirer, douleur thoracique intense, saignement important), rendez-vous IMMÉDIATEMENT à l\'hôpital le plus proche.';
+ // Récupérer les infos du patient pour le contexte
+ final patientDisease = _currentPatient!.maladie;
+ final patientName = _currentPatient!.prenom; 
 
-      // 👆👆 FIN DES AJOUTS 👆👆
-    } else {
-      response =
-          'Je peux vous aider avec des questions sur les médicaments, l\'alimentation, l\'exercice, ou la gestion de ${_currentPatient!.maladie}. N\'hésitez pas à me poser une question précise.';
-    }
+// Détection par mots-clés
+ if (lowerMessage.contains('médicament') ||
+ lowerMessage.contains('medicament') ||
+ lowerMessage.contains('traitement') ||
+ lowerMessage.contains('posologie')) {
+ response =
+ '**Concernant le traitement de ${patientDisease}** : Rappelez à ${patientName} l\'importance d\'une prise régulière et du respect strict de la posologie. Insistez pour qu\'il ne suspende jamais le traitement sans votre avis. En cas d\'oubli, suivre la procédure habituelle.';
+ } else if (lowerMessage.contains('manger') ||
+ lowerMessage.contains('aliment') ||
+ lowerMessage.contains('nutrition') ||
+ lowerMessage.contains('nourriture')) {
+ response =
+ '**Recommandations nutritionnelles pour ${patientDisease}** : Conseillez d\'orienter ${patientName} vers des fruits frais, des légumes locaux et des aliments non transformés. L\'hydratation est cruciale. Une diète équilibrée est un soutien thérapeutique essentiel.';
+ } else if (lowerMessage.contains('douleur') ||
+ lowerMessage.contains('mal') ||
+ lowerMessage.contains('souffrance') ||
+ lowerMessage.contains('symptôme')) { 
+ response =
+ '**Gestion de la douleur/des symptômes** : Il est recommandé d\'instruire ${patientName} à noter l\'intensité et la fréquence des douleurs. Si la douleur persiste ou est aiguë, demandez-lui de vous reconsulter immédiatement.Évitez l\'automédication pour la douleur.'; 
+ } else if (lowerMessage.contains('exercice') ||
+ lowerMessage.contains('sport') ||
+ lowerMessage.contains('activité')) {
+ response =
+ '**Activité physique** : Pour ${patientDisease}, conseillez une activité physique modérée (ex: marche quotidienne de 20-30 min) si l\'état du patient le permet. Insistez sur l\'écoute du corps et l\'évitement des efforts intenses sans évaluation préalable.';
+ } else if (lowerMessage.contains('fatigue') ||
+ lowerMessage.contains('fatigué') ||
+ lowerMessage.contains('énergie')) {
+ response =
+ '**Gestion de la fatigue** : La fatigue est fréquente. Recommandez à ${patientName} un sommeil de qualité (7-8h) et de courtes siestes. Suggérez un bilan nutritionnel si la fatigue est chronique et excessive afin d\'écarter toute cause métabolique traitable.'; 
+ } else if (lowerMessage.contains('stress') ||
+ lowerMessage.contains('anxiété') ||
+ lowerMessage.contains('peur') ||
+ lowerMessage.contains('inquiet')) {
+ response =
+ '**Support psychologique et Stress** : Le bien-être mental est primordial. Conseillez des techniques de relaxation ou de respiration profonde, et encouragez ${patientName} à se confier à son entourage ou à un professionnel de la santé mentale si le stress est sévère.'; 
+ } else if (lowerMessage.contains('urgence') ||
+ lowerMessage.contains('grave') ||
+ lowerMessage.contains('danger')) {
+ response =
+ '🚨 **Procédure d\'urgence** : Rappelez au patient que tout symptôme aigu (difficulté respiratoire, douleur thoracique, saignement incontrôlé, etc.) nécessite un transfert **IMMEDIAT** vers une structure de soins d\'urgence. Ce co-pilote ne remplace pas une évaluation d\'urgence.';
+ } else {
+ response =
+ 'Je n\'ai pas trouvé de protocole précis en mode hors-ligne pour cela, Docteur. Je peux vous assister avec des conseils sur les **médicaments**, l\'**alimentation**, l\'**exercice**, ou la **gestion de la fatigue** pour ${patientDisease}.'; 
+ }
 
     return ChatResponse(
       message: response,
@@ -246,54 +247,57 @@ Tu es prêt à répondre aux questions du patient.
     }
   }
 
-  // =======================================================================
-  // MÉTHODE RENOMMÉE POUR ÉVITER LE CONFLIT (REMPLACE _getOfflineAdvice)
-  // =======================================================================
-  AdviceResponse _getLocalAdviceFallback(Patient patient) {
+
+ // =======================================================================
+ // MÉTHODE RENOMMÉE POUR ÉVITER LE CONFLIT (ADAPTÉE POUR LE RÔLE DU MÉDECIN)
+ // =======================================================================
+AdviceResponse _getLocalAdviceFallback(Patient patient) {
     List<String> advice;
     final lowerDisease = patient.maladie.toLowerCase();
 
     if (lowerDisease.contains('diabète')) {
       advice = [
-        'Contrôlez votre glycémie chaque jour avant le petit-déjeuner.',
-        'Marchez 30 minutes au moins 5 fois par semaine.',
-        'Privilégiez les aliments locaux riches en fibres comme le manioc ou l\'igname.',
-        'Buvez beaucoup d\'eau pure et évitez les boissons sucrées.',
+        'Rappeler au patient de **contrôler sa glycémie** chaque jour avant le petit-déjeuner.',
+        'Recommander une **marche** de 30 minutes au moins 5 fois par semaine pour améliorer la sensibilité à l\'insuline.',
+        'Conseiller de privilégier les aliments locaux riches en fibres (manioc/igname) et d\'**éviter les sucres rapides**.',
+        'Insister sur l\'importance de boire beaucoup d\'eau pure et d\'**éliminer les boissons sucrées** industrielles.',
       ];
     } else if (lowerDisease.contains('hypertension')) {
       advice = [
-        'Réduisez votre consommation de sel et de cubes de bouillon.',
-        'Consommez des fruits comme la banane, riche en potassium.',
-        'Essayez de vous détendre quelques minutes chaque jour par la respiration.',
-        'Prenez votre traitement chaque jour à la même heure, même si vous vous sentez bien.',
+        'Suggérer une **réduction drastique de la consommation de sel** (y compris les cubes de bouillon et condiments industriels).',
+        'Encourager l\'ingestion de fruits riches en potassium comme la banane pour aider à **réguler la tension artérielle**.',
+        'Prescrire des techniques de **détente quotidienne** (respiration, méditation) pour gérer le stress.',
+        'Souligner l\'observance stricte du traitement : **prise quotidienne à heure fixe**, même en cas de bien-être apparent.',
       ];
     } else {
       advice = [
-        'Buvez au moins 1.5 litre d\'eau par jour pour rester hydraté.',
-        'Assurez-vous de bien dormir entre 7 et 8 heures par nuit.',
-        'Mangez des repas équilibrés avec des légumes et des fruits locaux.',
-        'Parlez à un professionnel de santé avant de prendre un nouveau médicament.',
+        'Suggérer un objectif d\'**hydratation** d\'au moins 1.5 litre d\'eau par jour.',
+        'Vérifier la qualité et la quantité du **sommeil** (cible : 7 à 8 heures par nuit).',
+        'Encourager des repas équilibrés incluant des **légumes et fruits locaux** à chaque prise.',
+        'Rappeler la nécessité de **consulter avant toute nouvelle prise de médicament** ou de complément alimentaire.',
       ];
     }
 
     patient.conseils = advice.join('\n');
     DatabaseService.instance.updatePatient(patient);
 
-    // Ici, on appelle le constructeur de la classe AdviceResponse, c'est correct
     return AdviceResponse(advice: advice, source: MessageSource.local);
   }
 
   // Suggestions de questions
   List<String> getSuggestedQuestions() {
     if (_currentPatient == null) return [];
-    return [
-      'Comment prendre mes médicaments ?',
-      'Quels aliments sont bons pour moi ?',
-      'Que faire en cas de douleur ?',
-      'Quels exercices puis-je faire ?',
-      'Comment gérer la fatigue ?',
-      'Que faire en cas d\'urgence ?',
-    ];
+    // Utiliser _currentPatient! pour accéder aux données du patient
+    final patientName = _currentPatient!.nomComplet;
+    final disease = _currentPatient!.maladie;
+   return [
+    'Quelle est la posologie habituelle pour ${disease} ?',
+    'Quels sont les principaux conseils nutritionnels pour ${patientName} ?',
+    'Comment gérer un pic de symptômes chez ce patient ?',
+    'Y a-t-il des interactions médicamenteuses courantes à éviter ?',
+    'Quelle routine d\'exercice puis-je recommander au patient ?',
+    'Quels sont les signes d\'alerte pour une urgence ?',
+ ];
   }
 
   // Obtenir l'historique du chat
