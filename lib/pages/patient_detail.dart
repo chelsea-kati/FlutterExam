@@ -43,6 +43,11 @@ class _PatientDetailPageState extends State<PatientDetailPage> {
   bool _isGeneratingAdvice = false;
   List<String> _aiAdvice = [];
   MessageSource? _adviceSource;
+  late Patient _currentPatient;
+  final _formKey = GlobalKey<FormState>();
+  bool _isEditing = false;
+
+  
 
   @override
   void initState() {

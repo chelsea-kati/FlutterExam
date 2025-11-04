@@ -131,6 +131,7 @@ class _AIChatPageState extends State<AIChatPage> {
     final patientColor = _getPatientColor();
 
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       body: Column(
         children: [
           // En-tête personnalisé avec photo du patient

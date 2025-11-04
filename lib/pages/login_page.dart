@@ -51,9 +51,9 @@ class _LoginPageState extends State<LoginPage> {
 
   // Navigation vers l'inscription (inchangée)
   void _goToRegisterPage() async {
-    final result = await Navigator.of(context).push(
-      MaterialPageRoute(builder: (context) => const RegisterPage()),
-    );
+    final result = await Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (context) => const RegisterPage()));
 
     if (mounted && result == true) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -121,7 +121,7 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     // 💡 Récupération des couleurs de vos constantes pour uniformité
-    const Color overlayColor = AppColors.background; 
+    const Color overlayColor = AppColors.primary;
 
     return Scaffold(
       // 🚀 NOUVEAU : Container pour l'image de fond et l'overlay
@@ -130,25 +130,32 @@ class _LoginPageState extends State<LoginPage> {
           // 1. Image de fond
           image: DecorationImage(
             // ⚠️ Assurez-vous que le chemin est correct !
-            image: const AssetImage('assets/images/marcelo-leal-k7ll1hpdhFA-unsplash.jpg'),
+            image: const AssetImage(
+              'assets/images/marcelo-leal-k7ll1hpdhFA-unsplash.jpg',
+            ),
             fit: BoxFit.cover,
             // 2. Filtre de couleur pour l'éclaircir et le lier à votre thème
             colorFilter: ColorFilter.mode(
-              overlayColor.withOpacity(0.85), // Utilise la couleur de fond de l'app
-              BlendMode.screen, // 'screen' ou 'lighten' donne un bon effet
+              overlayColor.withOpacity(
+                0.85,
+              ), // Utilise la couleur de fond de l'app
+              BlendMode.lighten, // 'screen' ou 'lighten' donne un bon effet
             ),
+            onError: (error, stackTrace) {
+              print('❌ Erreur chargement image: $error');
+            },
           ),
         ),
         // 3. Container pour l'overlay de dégradé (optionnel, pour plus de lisibilité)
         child: Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
               colors: [
-                overlayColor.withOpacity(0.9),
-                Colors.white.withOpacity(0.95), // Rend le centre plus clair
-                overlayColor.withOpacity(0.9),
+                 Color(0xFFF5F1ED).withOpacity(0.9), // Beige clair du tissu
+                Colors.white.withOpacity(0.95), // Blanc cassé
+                Color(0xFFF5F1ED).withOpacity(0.9), // Marron clair du stéthoscope
               ],
             ),
           ),
@@ -191,10 +198,11 @@ class _LoginPageState extends State<LoginPage> {
                       Text(
                         'Plaidoyer Santé', // Utiliser AppConstants.appName si vous l'avez
                         textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.primary,
-                        ),
+                        style: Theme.of(context).textTheme.headlineLarge
+                            ?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.primary,
+                            ),
                       ),
 
                       const SizedBox(height: AppSizes.paddingS),
@@ -284,9 +292,13 @@ class _LoginPageState extends State<LoginPage> {
                               ElevatedButton(
                                 onPressed: _isLoading ? null : _login,
                                 style: ElevatedButton.styleFrom(
-                                  padding: const EdgeInsets.symmetric(vertical: 16),
-                                  backgroundColor: AppColors.primary, // Couleur principale
-                                  foregroundColor: AppColors.textOnPrimary, // Texte blanc/clair
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 16,
+                                  ),
+                                  backgroundColor:
+                                      AppColors.primary, // Couleur principale
+                                  foregroundColor: AppColors
+                                      .textOnPrimary, // Texte blanc/clair
                                 ),
                                 child: _isLoading
                                     ? const SizedBox(
@@ -294,9 +306,10 @@ class _LoginPageState extends State<LoginPage> {
                                         width: 20,
                                         child: CircularProgressIndicator(
                                           strokeWidth: 2,
-                                          valueColor: AlwaysStoppedAnimation<Color>(
-                                            AppColors.textOnPrimary,
-                                          ),
+                                          valueColor:
+                                              AlwaysStoppedAnimation<Color>(
+                                                AppColors.textOnPrimary,
+                                              ),
                                         ),
                                       )
                                     : const Text(
@@ -309,13 +322,16 @@ class _LoginPageState extends State<LoginPage> {
 
                               // Bouton pour l'inscription
                               TextButton(
-                                onPressed: _isLoading ? null : _goToRegisterPage,
+                                onPressed: _isLoading
+                                    ? null
+                                    : _goToRegisterPage,
                                 child: Text(
                                   "Pas encore de compte ? S'enregistrer",
                                   style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold,
-                                    color: AppColors.primary, // Couleur principale
+                                    color:
+                                        AppColors.primary, // Couleur principale
                                   ),
                                 ),
                               ),
@@ -327,45 +343,45 @@ class _LoginPageState extends State<LoginPage> {
                       const SizedBox(height: AppSizes.paddingXL),
 
                       // Info compte par défaut (inchangé)
-                      Container(
-                        padding: const EdgeInsets.all(AppSizes.paddingL),
-                        decoration: BoxDecoration(
-                          color: AppColors.info.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(AppSizes.radiusM),
-                          border: Border.all(
-                            color: AppColors.info.withOpacity(0.3),
-                          ),
-                        ),
-                        child: Column(
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.info_outline_rounded,
-                                  color: AppColors.info,
-                                  size: 20,
-                                ),
-                                const SizedBox(width: AppSizes.paddingS),
-                                Text(
-                                  'Compte par défaut',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.w600,
-                                    color: AppColors.info,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: AppSizes.paddingS),
-                            Text(
-                              'Utilisateur: admin\nMot de passe: admin123',
-                              textAlign: TextAlign.center,
-                              style: Theme.of(context).textTheme.bodySmall
-                                  ?.copyWith(color: AppColors.textSecondary),
-                            ),
-                          ],
-                        ),
-                      ),
+                      // Container(
+                      //   padding: const EdgeInsets.all(AppSizes.paddingL),
+                      //   decoration: BoxDecoration(
+                      //     color: AppColors.info.withOpacity(0.1),
+                      //     borderRadius: BorderRadius.circular(AppSizes.radiusM),
+                      //     border: Border.all(
+                      //       color: AppColors.info.withOpacity(0.3),
+                      //     ),
+                      //   ),
+                      //   child: Column(
+                      //     children: [
+                      //       Row(
+                      //         mainAxisAlignment: MainAxisAlignment.center,
+                      //         children: [
+                      //           Icon(
+                      //             Icons.info_outline_rounded,
+                      //             color: AppColors.info,
+                      //             size: 20,
+                      //           ),
+                      //           const SizedBox(width: AppSizes.paddingS),
+                      //           Text(
+                      //             'Compte par défaut',
+                      //             style: TextStyle(
+                      //               fontWeight: FontWeight.w600,
+                      //               color: AppColors.info,
+                      //             ),
+                      //           ),
+                      //         ],
+                      //       ),
+                      //       const SizedBox(height: AppSizes.paddingS),
+                      //       Text(
+                      //         'Utilisateur: admin\nMot de passe: admin123',
+                      //         textAlign: TextAlign.center,
+                      //         style: Theme.of(context).textTheme.bodySmall
+                      //             ?.copyWith(color: AppColors.textSecondary),
+                      //       ),
+                      //     ],
+                      //   ),
+                      // ),
                     ],
                   ),
                 ),
