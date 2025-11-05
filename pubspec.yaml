@@ -52,7 +52,8 @@ dependencies:
   url_launcher: ^6.2.1 #sert à lancer (ouvrir) des URL ou des schémas d'URL (URI) externes à votre application Flutter.
   crypto: ^3.0.3 # Pour le hachage des mots de passe
   image_picker: ^0.8.7+5 # Pour sélectionner des images depuis la galerie ou la caméra
-  path_provider: ^2.0.15 # Pour Pour sauvegarder l'image localement 
+  path_provider: ^2.0.15 # Pour Pour sauvegarder l'image localement
+  shared_preferences: ^2.2.2 # Pour sauvegarder les paramètres 
 
 
   # The following adds the Cupertino Icons font to your application.

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../utils/constants.dart' as constants;
+// import '../utils/constants.dart' as constants;
 import '../widgets/metric_card.dart';
 import '../widgets/patient_card.dart';
 import '../models/patient.dart';
@@ -11,6 +11,7 @@ import 'package:async/async.dart'; // 💡 1. Import pour le Debouncer
 import 'package:debounce_throttle/debounce_throttle.dart' as dt;
 import '../utils/debouncer.dart';
 import '../pages/PatientsListPage.dart';
+import '../pages/settings_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -108,29 +109,6 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  // // Charger stats WHO (appel direct, fallback intégré)
-  // Future<void> _loadWhoStats() async {
-  //   try {
-  //     print('🔄 Chargement statistiques WHO...');
-
-  //     // Appel direct à WHOApiService qui gère déjà le fallback
-  //     final stats = await WHOApiService.instance.getCancerStatsByCountry();
-
-  //     print('✅ ${stats.length} pays chargés');
-  //     print(
-  //       '📊 Source: ${stats.first.lastUpdated.difference(DateTime.now()).inSeconds < 5 ? "API WHO" : "Cache/Test"}',
-  //     );
-
-  //     setState(() {
-  //       _whoStats = stats;
-  //     });
-  //   } catch (e) {
-  //     print('❌ Erreur stats WHO: $e');
-  //     setState(() {
-  //       _whoStats = [];
-  //     });
-  //   }
-  // }
   Future<void> _loadWhoStats() async {
     // 1. Indiquer que le chargement commence
     setState(() {
@@ -232,7 +210,11 @@ class _HomePageState extends State<HomePage> {
           ),
           IconButton(
             icon: const Icon(Icons.settings_rounded, color: Colors.white),
-            onPressed: () {},
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (context) => const SettingsPage()),
+              );
+            },
           ),
         ],
       ),

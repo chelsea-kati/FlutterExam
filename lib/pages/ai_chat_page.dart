@@ -132,7 +132,8 @@ class _AIChatPageState extends State<AIChatPage> {
 
     return Scaffold(
       resizeToAvoidBottomInset: true,
-      body: Column(
+      body: SafeArea(
+        child: Column (
         children: [
           // En-tête personnalisé avec photo du patient
           Container(
@@ -488,6 +489,7 @@ class _AIChatPageState extends State<AIChatPage> {
             ),
           ),
         ],
+      ),
       ),
     );
   }

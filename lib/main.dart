@@ -71,7 +71,7 @@ class _AuthCheckState extends State<AuthCheck> {
   Future<void> _checkLoginStatus() async {
     final authService = AuthService.instance;
     
-    // ✅ CORRECTION : Utiliser isLoggedIn() au lieu de isUserLoggedIn()
+
     final isLoggedIn = authService.isLoggedIn(); 
 
     if (mounted) {
@@ -108,8 +108,8 @@ class _AuthCheckState extends State<AuthCheck> {
                   ],
                 ),
                 child: const Icon(
-                  Icons.favorite_rounded,
-                  size: 60,
+                  Icons.local_hospital_rounded,
+                  size: 70,
                   color: AppColors.textOnPrimary,
                 ),
               ),

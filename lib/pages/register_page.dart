@@ -281,7 +281,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 TextFormField(
                   controller: _usernameController,
                   decoration: const InputDecoration(
-                    labelText: 'Nom d\'utilisateur *',
+                    labelText: 'Nom d\'utilisateur ',
                     hintText: 'Ex: jdupont',
                     prefixIcon: Icon(Icons.account_circle_outlined),
                   ),
@@ -296,7 +296,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 TextFormField(
                   controller: _passwordController,
                   decoration: InputDecoration(
-                    labelText: 'Mot de passe *',
+                    labelText: 'Mot de passe ',
                     hintText: 'Au moins 6 caractères',
                     prefixIcon: const Icon(Icons.lock_outline_rounded),
                     suffixIcon: IconButton(
@@ -324,7 +324,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 TextFormField(
                   controller: _confirmPasswordController,
                   decoration: InputDecoration(
-                    labelText: 'Confirmer le mot de passe *',
+                    labelText: 'Confirmer le mot de passe ',
                     hintText: 'Retapez le mot de passe',
                     prefixIcon: const Icon(Icons.lock_outline_rounded),
                     suffixIcon: IconButton(
@@ -394,7 +394,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 TextFormField(
                   controller: _fullNameController,
                   decoration: const InputDecoration(
-                    labelText: 'Nom complet *',
+                    labelText: 'Nom complet ',
                     hintText: 'Ex: Jean Dupont',
                     prefixIcon: Icon(Icons.person_outline_rounded),
                   ),
@@ -410,7 +410,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 DropdownButtonFormField<String>(
                   value: _selectedRole,
                   decoration: const InputDecoration(
-                    labelText: 'Rôle *',
+                    labelText: 'Rôle ',
                     prefixIcon: Icon(Icons.badge_outlined),
                   ),
                   items: User.roleLabels.entries.map((entry) {

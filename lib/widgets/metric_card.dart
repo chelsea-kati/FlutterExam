@@ -3,11 +3,6 @@
 // Commençons par organiser ton projet Flutter avec les bonnes couleurs et la structure que tu as mentionnée.
 
 import 'package:flutter/material.dart';
-import '../utils/constants.dart';
-
-// lib/utils/constants.dart
-
-// import 'package:flutter/material.dart';
 
 class AppConstants {
   // URLs de l'API

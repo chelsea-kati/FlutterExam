@@ -45,9 +45,6 @@ class _AddPatientPageState extends State<AddPatientPage> {
     'Cancer du poumon',
     'Cancer colorectal',
     'Cancer de la prostate',
-    'Leucémie',
-    'Lymphome',
-    'Mélanome',
     'Cancer de l\'estomac',
     'Cancer du foie',
     'Autre',
@@ -315,7 +312,7 @@ class _AddPatientPageState extends State<AddPatientPage> {
                     TextFormField(
                       controller: _nomController,
                       decoration: const InputDecoration(
-                        labelText: 'Nom *',
+                        labelText: 'Nom ',
                         hintText: 'Ex: Uwimana',
                         prefixIcon: Icon(Icons.person_outline_rounded),
                       ),
@@ -329,7 +326,7 @@ class _AddPatientPageState extends State<AddPatientPage> {
                     TextFormField(
                       controller: _prenomController,
                       decoration: const InputDecoration(
-                        labelText: 'Prénom *',
+                        labelText: 'Prénom ',
                         hintText: 'Ex: Marie',
                         prefixIcon: Icon(Icons.person_outline_rounded),
                       ),
@@ -343,7 +340,7 @@ class _AddPatientPageState extends State<AddPatientPage> {
                     TextFormField(
                       controller: _ageController,
                       decoration: const InputDecoration(
-                        labelText: 'Âge *',
+                        labelText: 'Âge ',
                         hintText: 'Ex: 45',
                         prefixIcon: Icon(Icons.cake_rounded),
                         suffixText: 'ans',
@@ -362,7 +359,7 @@ class _AddPatientPageState extends State<AddPatientPage> {
                     DropdownButtonFormField<String>(
                       value: _selectedPays,
                       decoration: const InputDecoration(
-                        labelText: 'Pays *',
+                        labelText: 'Pays ',
                         prefixIcon: Icon(Icons.flag_rounded),
                       ),
                       hint: const Text('Sélectionnez un pays'),
@@ -392,7 +389,7 @@ class _AddPatientPageState extends State<AddPatientPage> {
                     DropdownButtonFormField<String>(
                       value: _selectedMaladie,
                       decoration: const InputDecoration(
-                        labelText: 'Maladie/Diagnostic *',
+                        labelText: 'Maladie/Diagnostic ',
                         prefixIcon: Icon(Icons.medical_information_rounded),
                       ),
                       hint: const Text('Sélectionnez une maladie'),
@@ -418,7 +415,7 @@ class _AddPatientPageState extends State<AddPatientPage> {
                       borderRadius: BorderRadius.circular(AppSizes.radiusM),
                       child: InputDecorator(
                         decoration: const InputDecoration(
-                          labelText: 'Dernière Visite',
+                          labelText: 'Première Consultation',
                           prefixIcon: Icon(Icons.calendar_today_rounded),
                           suffixIcon: Icon(Icons.arrow_drop_down),
                         ),
@@ -449,23 +446,23 @@ class _AddPatientPageState extends State<AddPatientPage> {
                     const SizedBox(height: AppSizes.paddingXL),
 
                     // Note sur les champs obligatoires
-                    Row(
-                      children: [
-                        const Icon(
-                          Icons.info_outline_rounded,
-                          size: 16,
-                          color: AppColors.textSecondary,
-                        ),
-                        const SizedBox(width: AppSizes.paddingS),
-                        Text(
-                          '* Champs obligatoires',
-                          style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(color: AppColors.textSecondary),
-                        ),
-                      ],
-                    ),
+                    // Row(
+                    //   children: [
+                    //     const Icon(
+                    //       Icons.info_outline_rounded,
+                    //       size: 16,
+                    //       color: AppColors.textSecondary,
+                    //     ),
+                    //     const SizedBox(width: AppSizes.paddingS),
+                    //     Text(
+                    //       ' Champs obligatoires',
+                    //       style: Theme.of(context).textTheme.bodySmall
+                    //           ?.copyWith(color: AppColors.textSecondary),
+                    //     ),
+                    //   ],
+                    // ),
 
-                    const SizedBox(height: AppSizes.paddingL),
+                    // const SizedBox(height: AppSizes.paddingL),
 
                     // Bouton Enregistrer
                     ElevatedButton.icon(

@@ -24,14 +24,14 @@ class User {
   }) : createdAt = createdAt ?? DateTime.now();
 
   // Rôles disponibles
-  static const String roleAdmin = 'admin';
+  // static const String roleAdmin = 'admin';
   static const String roleDoctor = 'doctor';
   static const String roleNurse = 'nurse';
   static const String roleStaff = 'staff';
 
   // Liste des rôles avec leurs labels
   static const Map<String, String> roleLabels = {
-    'admin': 'Administrateur',
+    // 'admin': 'Administrateur',
     'doctor': 'Médecin',
     'nurse': 'Infirmier(ère)',
     'staff': 'Personnel',
@@ -41,7 +41,7 @@ class User {
   String get roleLabel => roleLabels[role] ?? role;
 
   // Vérifier si c'est un admin
-  bool get isAdmin => role == roleAdmin;
+  // bool get isAdmin => role == roleAdmin;
 
   // Vérifier si c'est un médecin
   bool get isDoctor => role == roleDoctor;

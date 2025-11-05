@@ -169,7 +169,7 @@ class _LoginPageState extends State<LoginPage> {
                         height: 120,
                         decoration: BoxDecoration(
                           color: AppColors.primary,
-                          shape: BoxShape.circle,
+                          borderRadius: BorderRadius.circular(24.0),
                           boxShadow: [
                             BoxShadow(
                               color: AppColors.primary.withOpacity(0.3),
@@ -179,8 +179,8 @@ class _LoginPageState extends State<LoginPage> {
                           ],
                         ),
                         child: const Icon(
-                          Icons.favorite_rounded,
-                          size: 60,
+                          Icons.local_hospital_rounded,
+                          size: 70,
                           color: AppColors.textOnPrimary,
                         ),
                       ),

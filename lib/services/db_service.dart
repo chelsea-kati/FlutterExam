@@ -145,15 +145,6 @@ CREATE TABLE sponsors (
         derniereVisite: DateTime.now().subtract(const Duration(days: 2)),
       ),
       Patient(
-        nom: 'Smith',
-        prenom: 'Jane',
-        age: 32,
-        pays: 'Rwanda',
-        maladie: 'VIH',
-        conseils: 'Prendre les ARV régulièrement, manger sainement',
-        derniereVisite: DateTime.now().subtract(const Duration(days: 7)),
-      ),
-      Patient(
         nom: 'Uwimana',
         prenom: 'Marie',
         age: 28,
@@ -181,15 +172,7 @@ CREATE TABLE sponsors (
         conseils: 'Alimentation riche en fibres.',
         derniereVisite: DateTime.now(),
       ),
-      Patient(
-        nom: 'Karekezi',
-        prenom: 'Aimé',
-        age: 40,
-        pays: 'RDC',
-        maladie: 'Leucémie',
-        conseils: 'Repos strict.',
-        derniereVisite: DateTime.now(),
-      ),
+
     ];
 
     for (final patient in testPatients) {

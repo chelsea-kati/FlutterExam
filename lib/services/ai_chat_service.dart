@@ -76,7 +76,7 @@ Consignes IMPORTANTES :
 2. Fournis des **recommandations professionnelles et factuelles** basées sur le profil du patient.
 3. Réfère-toi au patient en utilisant "le patient" ou son nom, pas "vous".
 4.Adapte tes réponses à ${patient.maladie} et au contexte africain (${patient.pays}).
-5. Limite tes réponses à 4-5 phrases maximum.
+5. Limite tes réponses à 3-4 phrases maximum.
 6. Ne donne jamais de diagnostic, mais des pistes de conseils.
 7. Reste dans ton domaine médical, ne réponds pas aux questions hors sujet
 
