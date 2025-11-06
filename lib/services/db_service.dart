@@ -96,6 +96,7 @@ class DatabaseService {
  )
  ''');
     print(' Table country_stats créée');
+
     // Insérer les données de test
     await _insertTestData(db);
     //  NOUVEAU : Table des conseils
@@ -116,15 +117,15 @@ class DatabaseService {
     // ✨ NOUVEAU : Table des sponsors
     await db.execute('''
 CREATE TABLE sponsors (
- id INTEGER PRIMARY KEY,
- nom TEXT NOT NULL, 
- logoUrl TEXT,
- siteWeb TEXT,
- description TEXT, 
- targetDisease TEXT, 
- targetCountry TEXT 
- )
- ''');
+id INTEGER PRIMARY KEY,
+nom TEXT NOT NULL, 
+logoUrl TEXT,
+siteWeb TEXT,
+description TEXT, 
+targetDisease TEXT, 
+targetCountry TEXT 
+);
+''');
     print('✅ Table Sponsors créée');
     // 💡 NOUVEL APPEL : Insérer les sponsors par défaut juste après la création de la table
     await insertInitialSponsors(db);
@@ -173,7 +174,6 @@ CREATE TABLE sponsors (
         conseils: 'Alimentation riche en fibres.',
         derniereVisite: DateTime.now(),
       ),
-
     ];
 
     for (final patient in testPatients) {
@@ -274,52 +274,57 @@ CREATE TABLE sponsors (
     }
     print('✅ ${initialConseils.length} conseils insérés (si non existants).');
   }
+
   // ------------------------------------------------------------------
-Future<void> insertInitialSponsors(Database db) async {
-  print('🔄 Insertion des données de sponsors par défaut...');
+  Future<void> insertInitialSponsors(Database db) async {
+    print('🔄 Insertion des données de sponsors par défaut...');
 
-  final initialSponsors = [
-    Sponsor(
-    id: 1,
-    name: 'Santé Plus (Maladie A)', //  'name' au lieu de 'nom'
-    imageUrl: 'assets/images/logo_sante_plus.png',
-    websiteUrl: 'https://santeplus.org',
-    // ✅ AJOUT DES CHAMPS OBLIGATOIRES par le constructeur du modèle :
-    description: 'Leader en solutions de santé numérique.', 
-    targetDisease: 'Paludisme',
-    targetCountry: 'Burundi'
-  ).toMap(),
-Sponsor(
-    id: 2,
-    name: 'Global Aid (Maladie B)', //  Utiliser 'name' au lieu de 'nom'
-    imageUrl: 'assets/images/logo_global_aid.png',
-    websiteUrl: 'https://globalaid.org',    
-    description: 'Financement de projets humanitaires pour les régions touchées par les maladies.', 
-    targetDisease: 'Choléra',
-    targetCountry: 'Rwanda',
-  ).toMap(),
+    final initialSponsors = [
+      Sponsor(
+        id: 1,
+        name: 'Santé Plus (Maladie A)', //  'name' au lieu de 'nom'
+        imageUrl: 'assets/images/logo_sante_plus.png',
+        websiteUrl: 'https://santeplus.org',
+        // ✅ AJOUT DES CHAMPS OBLIGATOIRES par le constructeur du modèle :
+        description: 'Leader en solutions de santé numérique.',
+        targetDisease: 'Paludisme',
+        targetCountry: 'Burundi',
+      ).toMap(),
+      Sponsor(
+        id: 2,
+        name: 'Global Aid (Maladie B)', //  Utiliser 'name' au lieu de 'nom'
+        imageUrl: 'assets/images/logo_global_aid.png',
+        websiteUrl: 'https://globalaid.org',
+        description:
+            'Financement de projets humanitaires pour les régions touchées par les maladies.',
+        targetDisease: 'Choléra',
+        targetCountry: 'Rwanda',
+      ).toMap(),
 
-    Sponsor(
-    id: 3,
-    name: 'Tech for Health (Maladie C)', // 👈 Utiliser 'name' au lieu de 'nom'
-    imageUrl: 'assets/images/logo_tech_health.png',
-    websiteUrl: 'https://techforhealth.net',    
-    description: 'Fournisseur de solutions technologiques pour le suivi des patients.',
-    targetDisease: 'COVID-19',
-    targetCountry: 'RDC',
-  ).toMap(),
-  ];
+      Sponsor(
+        id: 3,
+        name:
+            'Tech for Health (Maladie C)', // 👈 Utiliser 'name' au lieu de 'nom'
+        imageUrl: 'assets/images/logo_tech_health.png',
+        websiteUrl: 'https://techforhealth.net',
+        description:
+            'Fournisseur de solutions technologiques pour le suivi des patients.',
+        targetDisease: 'COVID-19',
+        targetCountry: 'RDC',
+      ).toMap(),
+    ];
 
-  for (var sponsorMap in initialSponsors) {
-    // ⚠️ Note : Nous utilisons la colonne 'sponsors' et non 'Sponsors'
-    await db.insert(
-      'sponsors', 
-      sponsorMap,
-      conflictAlgorithm: ConflictAlgorithm.ignore,
-    );
+    for (var sponsorMap in initialSponsors) {
+      // ⚠️ Note : Nous utilisons la colonne 'sponsors' et non 'Sponsors'
+      await db.insert(
+        'sponsors',
+        sponsorMap,
+        conflictAlgorithm: ConflictAlgorithm.ignore,
+      );
+    }
+    print('✅ ${initialSponsors.length} sponsors insérés (si non existants).');
   }
-  print('✅ ${initialSponsors.length} sponsors insérés (si non existants).');
-}
+
   // CREATE - Ajouter un nouveau patient
   Future<int> insertPatient(Patient patient) async {
     // ... (Logique inchangée)
@@ -352,29 +357,30 @@ Sponsor(
       return Patient.fromMap(maps[i]);
     });
   }
+
   // 2. READ (Récupérer les 5 patients les plus récents) 💡 NOUVELLE MÉTHODE
-Future<List<Patient>> getRecentPatients(int limit) async {
-  print('📖 Récupération des $limit patients les plus récents...');
-  final db = await database;
-  
-  // Utilise ORDER BY et LIMIT pour n'obtenir que les N plus récents
-  final List<Map<String, dynamic>> maps = await db.query(
-    tableName, // Remplacez par votre nom de table si différent
-    orderBy: 'dateCreation DESC', // Utilisez votre champ de tri récent
-    limit: limit, // La limite passée en paramètre (sera 5)
-  );
+  Future<List<Patient>> getRecentPatients(int limit) async {
+    print('📖 Récupération des $limit patients les plus récents...');
+    final db = await database;
 
-  print('📊 Nombre de patients récents trouvés: ${maps.length}');
+    // Utilise ORDER BY et LIMIT pour n'obtenir que les N plus récents
+    final List<Map<String, dynamic>> maps = await db.query(
+      tableName, // Remplacez par votre nom de table si différent
+      orderBy: 'dateCreation DESC', // Utilisez votre champ de tri récent
+      limit: limit, // La limite passée en paramètre (sera 5)
+    );
 
-  if (maps.isEmpty) {
-    print('⚠️ Aucun patient récent trouvé !');
-    return [];
+    print('📊 Nombre de patients récents trouvés: ${maps.length}');
+
+    if (maps.isEmpty) {
+      print('⚠️ Aucun patient récent trouvé !');
+      return [];
+    }
+
+    return List.generate(maps.length, (i) {
+      return Patient.fromMap(maps[i]);
+    });
   }
-
-  return List.generate(maps.length, (i) {
-    return Patient.fromMap(maps[i]);
-  });
-}
 
   // READ - Récupérer un patient par ID
   Future<Patient?> getPatientById(int id) async {
