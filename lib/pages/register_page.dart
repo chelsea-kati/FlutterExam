@@ -446,24 +446,24 @@ class _RegisterPageState extends State<RegisterPage> {
                 const SizedBox(height: AppSizes.paddingXL),
 
                 // Note
-                Row(
-                  children: [
-                    const Icon(
-                      Icons.info_outline_rounded,
-                      size: 16,
-                      color: AppColors.textSecondary,
-                    ),
-                    const SizedBox(width: AppSizes.paddingS),
-                    Text(
-                      '* Champs obligatoires',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: AppColors.textSecondary,
-                          ),
-                    ),
-                  ],
-                ),
+                // Row(
+                //   children: [
+                //     const Icon(
+                //       Icons.info_outline_rounded,
+                //       size: 16,
+                //       color: AppColors.textSecondary,
+                //     ),
+                //     const SizedBox(width: AppSizes.paddingS),
+                    // Text(
+                    //   '* Champs obligatoires',
+                    //   style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    //         color: AppColors.textSecondary,
+                    //       ),
+                    // ),
+                //   ],
+                // ),
 
-                const SizedBox(height: AppSizes.paddingL),
+                // const SizedBox(height: AppSizes.paddingL),
 
                 // Bouton Créer le compte
                 ElevatedButton.icon(

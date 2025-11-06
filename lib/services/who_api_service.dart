@@ -115,7 +115,7 @@ class WHOApiService {
 
       //  MODIFICATION 1 : Utiliser l'indicateur plus fiable NCD_MORT_CANCER
       final filter = '($countryFilter$dimensionFilter)';
-      final url = '$_baseUrl/NCD_MORT_CANCER?\$filter=$filter';
+      final url = '$_baseUrl/NCDMORT3070?\$filter=$filter';
       // final url = '$_baseUrl/NCD_MORT_CANCER?\$filter=($countryFilter)';
 
       // final url = '$_baseUrl/NCDMORT3070?\$filter=($countryFilter)';
