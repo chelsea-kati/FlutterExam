@@ -95,6 +95,8 @@ class WHOApiService {
       'COD', // DR Congo
       'MOZ', // Mozambique
     ],
+    String?
+    whoDimensionFilter, //  NOUVEAU PARAMÈTRE (Ex: 'BREAST' pour cancer du sein)
   }) async {
     try {
       if (!await hasInternetConnection()) {
@@ -105,11 +107,18 @@ class WHOApiService {
       final countryFilter = countries
           .map((c) => "SpatialDim eq '$c'")
           .join(' or ');
+      //  MODIFICATION CLÉ : Ajouter la condition de filtre pour Dim1 si fournie
+      String dimensionFilter = '';
+      if (whoDimensionFilter != null && whoDimensionFilter.isNotEmpty) {
+        dimensionFilter = " and Dim1 eq '$whoDimensionFilter'";
+      }
 
-      // 🎯 MODIFICATION 1 : Utiliser l'indicateur plus fiable NCD_MORT_CANCER
-      //  final url = '$_baseUrl/NCD_MORT_CANCER?\$filter=($countryFilter)';
-      
-          final url = '$_baseUrl/NCDMORT3070?\$filter=($countryFilter)';
+      //  MODIFICATION 1 : Utiliser l'indicateur plus fiable NCD_MORT_CANCER
+      final filter = '($countryFilter$dimensionFilter)';
+      final url = '$_baseUrl/NCD_MORT_CANCER?\$filter=$filter';
+      // final url = '$_baseUrl/NCD_MORT_CANCER?\$filter=($countryFilter)';
+
+      // final url = '$_baseUrl/NCDMORT3070?\$filter=($countryFilter)';
       print('Requête API WHO: $url');
 
       final response = await http
@@ -130,10 +139,10 @@ class WHOApiService {
 
         print('Nombre de résultats bruts: ${values.length}');
 
-        if (values.isEmpty) {
-          print('Aucune donnée retournée - utilisation de données de test');
-          return _getTestData();
-        }
+        // if (values.isEmpty) {
+        //   print('Aucune donnée retournée - utilisation de données de test');
+        //   return _getTestData();
+        // }
 
         // Conversion de toutes les données en objets CountryStats
         List<CountryStats> allStats = [];
@@ -150,6 +159,7 @@ class WHOApiService {
                 value: stat.value,
                 year: stat.year,
                 indicator: stat.indicator,
+                indicatorDimension: stat.indicatorDimension,
                 lastUpdated: stat.lastUpdated,
               ),
             );
@@ -158,7 +168,7 @@ class WHOApiService {
           }
         }
 
-        // 🎯 MODIFICATION 2 : Logique de FILTRAGE PAR ANNÉE (Année la plus récente)
+        //  MODIFICATION 2 : Logique de FILTRAGE PAR ANNÉE (Année la plus récente)
 
         // Trouver l'année maximale parmi les résultats
         int maxYear = allStats.fold(
@@ -207,6 +217,7 @@ class WHOApiService {
         value: 145.0,
         year: 2025,
         indicator: 'NCDMORT3070',
+        indicatorDimension: 'BothSexes',
         lastUpdated: DateTime.now(),
       ),
       CountryStats(
@@ -215,6 +226,7 @@ class WHOApiService {
         value: 178.0,
         year: 2025,
         indicator: 'NCDMORT3070',
+        indicatorDimension: 'BothSexes',
         lastUpdated: DateTime.now(),
       ),
       CountryStats(
@@ -223,6 +235,7 @@ class WHOApiService {
         value: 234.0,
         year: 2025,
         indicator: 'NCDMORT3070',
+        indicatorDimension: 'BothSexes',
         lastUpdated: DateTime.now(),
       ),
       CountryStats(
@@ -231,6 +244,7 @@ class WHOApiService {
         value: 189.0,
         year: 2025,
         indicator: 'NCDMORT3070',
+        indicatorDimension: 'BothSexes',
         lastUpdated: DateTime.now(),
       ),
       CountryStats(
@@ -239,6 +253,7 @@ class WHOApiService {
         value: 167.0,
         year: 2025,
         indicator: 'NCDMORT3070',
+        indicatorDimension: 'BothSexes',
         lastUpdated: DateTime.now(),
       ),
       CountryStats(
@@ -247,6 +262,7 @@ class WHOApiService {
         value: 156.0,
         year: 2025,
         indicator: 'NCDMORT3070',
+        indicatorDimension: 'BothSexes',
         lastUpdated: DateTime.now(),
       ),
       CountryStats(
@@ -255,6 +271,7 @@ class WHOApiService {
         value: 198.0,
         year: 2025,
         indicator: 'NCDMORT3070',
+        indicatorDimension: 'BothSexes',
         lastUpdated: DateTime.now(),
       ),
       CountryStats(
@@ -263,6 +280,7 @@ class WHOApiService {
         value: 212.0,
         year: 2025,
         indicator: 'NCDMORT3070',
+        indicatorDimension: 'BothSexes',
         lastUpdated: DateTime.now(),
       ),
       CountryStats(
@@ -271,6 +289,7 @@ class WHOApiService {
         value: 176.0,
         year: 2025,
         indicator: 'NCDMORT3070',
+        indicatorDimension: 'BothSexes',
         lastUpdated: DateTime.now(),
       ),
       CountryStats(
@@ -279,6 +298,7 @@ class WHOApiService {
         value: 203.0,
         year: 2025,
         indicator: 'NCDMORT3070',
+        indicatorDimension: 'BothSexes',
         lastUpdated: DateTime.now(),
       ),
     ];

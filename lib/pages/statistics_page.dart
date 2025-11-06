@@ -7,9 +7,10 @@ import '../widgets/metric_card.dart';
 import '../models/country_stats.dart';
 import '../widgets/bar_chart_card.dart';
 import '../services/who_api_service.dart'; // 💡 AJOUTEZ CET IMPORT
-import 'package:intl/intl.dart'; // 👈 NOUVEAU : Pour formater la date
+import 'package:intl/intl.dart'; // 👈 Pour formater la date
 
-// Assurez-vous d'avoir les constantes AppColors et AppSizes
+// --- DEFINITIONS TEMPORAIRES POUR ÉVITER LES ERREURS ---
+// ⚠️ À remplacer par vos classes AppColors et AppSizes si elles existent ailleurs
 // class AppColors {
 //   static const Color primary = Colors.blue;
 //   static const Color background = Color(0xFFF5F5F5);
@@ -17,9 +18,21 @@ import 'package:intl/intl.dart'; // 👈 NOUVEAU : Pour formater la date
 // }
 
 // class AppSizes {
+//   static const double paddingS = 8.0; // AJOUTÉ
 //   static const double paddingL = 16.0;
 //   static const double paddingXL = 24.0;
 // }
+// --- FIN DES DEFINITIONS TEMPORAIRES ---
+
+// 🎯 NOUVEAU : Définir les dimensions OMS possibles pour le filtre (Code: Nom lisible)
+const Map<String, String> whoDimensionOptions = {
+  'ALL': 'Tous les Cancers (Moyenne/Agrégat)',
+  'BREAST': 'Cancer du Sein',
+  'LUNG': 'Cancer du Poumon',
+  'COLORECTAL': 'Cancer Colorectal',
+  'PROSTATE': 'Cancer de la Prostate',
+};
+
 
 class StatisticsPage extends StatefulWidget {
   const StatisticsPage({super.key});
@@ -34,49 +47,69 @@ class _StatisticsPageState extends State<StatisticsPage> {
   List<Map<String, dynamic>> patientsByDisease = [];
   // NOUVEAU : Variable pour stocker toutes les statistiques WHO
   List<CountryStats> whoStats = [];
+
+  // 🎯 NOUVEL ÉTAT : Filtre de dimension OMS sélectionné (valeur par défaut)
+  String _selectedWhoDimension = 'ALL';
+
   /// Fusionne les données locales des patients avec les statistiques OMS.
-List<Map<String, dynamic>> _getMergedCountryData() {
-  // Créer un Map pour un accès rapide aux stats WHO par code pays
-  final Map<String, CountryStats> whoStatsMap = {};
-  for (var stat in whoStats) {
-    // Utiliser le code pays (si unique ou prendre la dernière entrée)
-    // Ici, nous supposons que whoStats a déjà été filtré ou trié pour la pertinence
-    whoStatsMap[stat.countryCode] = stat;
-  }
-  final List<Map<String, dynamic>> mergedData = [];
+  List<Map<String, dynamic>> _getMergedCountryData() {
+    // Créer un Map pour un accès rapide aux stats WHO par code pays
+    final Map<String, CountryStats> whoStatsMap = {};
+    for (var stat in whoStats) {
+      // Utiliser le code pays (si unique ou prendre la dernière entrée)
+      // Puisque whoStats est censé être filtré par dimension ici, le code pays suffit
+      whoStatsMap[stat.countryCode] = stat;
+    }
+    final List<Map<String, dynamic>> mergedData = [];
 
-  // Parcourir les données locales des patients (patientsByCountry)
-  for (var patientData in patientsByCountry) {
-    final String countryCode = patientData['code'] as String? ?? '??'; // Code pays par défaut
-    final int patientCount = patientData['count'] as int? ?? 0;        // 0 patient par défaut
-    final String countryName = patientData['pays'] as String? ?? 'Pays Inconnu'; // Nom du pays
-    
-    // Initialiser les valeurs WHO à zéro ou null
-    double whoValue = 0.0;
-    String whoIndicator = '';
+    // Parcourir les données locales des patients (patientsByCountry)
+    for (var patientData in patientsByCountry) {
+      // NOTE: Votre modèle patientData ne contient pas de 'code', on utilise 'pays'
+      final String countryName = patientData['pays'] as String? ?? 'Pays Inconnu';
+      // Il vous faudrait une méthode pour mapper le nom du pays au code pays (ex: 'Burundi' -> 'BDI') pour faire un vrai match avec whoStats
+      // Pour le test, nous utilisons le nom du pays pour la fusion (ce qui est faible, mais permet de voir la logique)
+      final String countryCode = countryName; // Placeholder: Utiliser le nom du pays comme clé temporaire pour les stats locales
+      final int patientCount = patientData['count'] as int? ?? 0;
 
-    // Tenter de trouver la stat WHO correspondante
-    final CountryStats? whoStat = whoStatsMap[countryCode];
+      // Initialiser les valeurs WHO à zéro ou null
+      double whoValue = 0.0;
+      String whoIndicator = '';
 
-    if (whoStat != null) {
-      whoValue = whoStat.value;
-      whoIndicator = whoStat.indicator;
+      // Tenter de trouver la stat WHO correspondante.
+      // Si whoStats utilise le Code Pays (ex: BDI), il faut que patientData ait ce code.
+      // ACTUELLEMENT: On utilise le code pays de whoStats pour l'index, mais l'API peut renvoyer plus que les pays de nos patients.
+      final CountryStats? whoStat = whoStats.firstWhere(
+            (stat) => stat.countryName == countryName,
+        orElse: () => CountryStats(
+          countryCode: '',
+          countryName: '',
+          value: 0.0,
+          year: 0,
+          indicator: '',
+          indicatorDimension: '',
+          lastUpdated: DateTime.now(),
+        ), // Fournit un objet par défaut si non trouvé
+      );
+
+      if (whoStat != null && whoStat.countryCode.isNotEmpty) {
+        whoValue = whoStat.value;
+        whoIndicator = whoStat.indicator;
+      }
+
+      // Ajouter les données fusionnées
+      mergedData.add({
+        'country': countryName, // Nom du pays
+        'local_count': patientCount, // Nombre de patients locaux
+        'who_value': whoValue, // Taux de mortalité WHO
+        'who_indicator': whoIndicator, // Indicateur WHO
+      });
     }
 
-    // Ajouter les données fusionnées
-    mergedData.add({
-      'country': patientData['pays'], // Nom du pays
-      'local_count': patientCount,   // Nombre de patients locaux
-      'who_value': whoValue,         // Taux de mortalité WHO
-      'who_indicator': whoIndicator, // Indicateur WHO
-    });
-  }
-  
-  // Trier par nombre de patients locaux
-  mergedData.sort((a, b) => (b['local_count'] as int).compareTo(a['local_count'] as int));
+    // Trier par nombre de patients locaux
+    mergedData.sort((a, b) => (b['local_count'] as int).compareTo(a['local_count'] as int));
 
-  return mergedData;
-}
+    return mergedData;
+  }
 
 
   DateTime? _lastWhoSyncDate;
@@ -99,7 +132,9 @@ List<Map<String, dynamic>> _getMergedCountryData() {
     try {
       // 1. Déclencher la synchronisation externe et la sauvegarde locale
       // Le service se charge de vérifier l'internet et de sauvegarder dans la DB.
-      await _syncWhoData();
+      // ✅ Utilise le filtre actuel
+      await _syncWhoData(_selectedWhoDimension);
+
       // 2. Récupération des stats patient locales
       final List<Map<String, dynamic>> countryData = await DatabaseService
           .instance
@@ -108,31 +143,35 @@ List<Map<String, dynamic>> _getMergedCountryData() {
           .instance
           .getPatientsByDisease();
       // 💡 NOUVEAU : Récupérer les stats de l'OMS MAJ (après la synchro)
-      final List<CountryStats> newWhoStats = await DatabaseService.instance
-          .getCountryStats();
-      // await _syncWhoData();
+      // On récupère TOUTES les stats, mais la liste affichée sera filtrée par la logique ci-dessous,
+      // ou idéalement, la requête SQL dans getCountryStats devrait filtrer sur `indicatorDimension`
+      final List<CountryStats> allWhoStats = await DatabaseService.instance.getCountryStats();
+
+      // Filtrer la liste whoStats en mémoire par la dimension sélectionnée
+      final List<CountryStats> filteredWhoStats = allWhoStats.where((stat) =>
+      _selectedWhoDimension == 'ALL' || stat.indicatorDimension == _selectedWhoDimension
+      ).toList();
 
       if (mounted) {
         setState(() {
           patientsByCountry = countryData;
           patientsByDisease = diseaseData;
-          whoStats = newWhoStats; // ⬅️ ASSUREZ-VOUS QUE C'EST BIEN FAIT
+          whoStats = filteredWhoStats; // ⬅️ On utilise la liste FILTRÉE
+
           // Calculer les métadonnées WHO
           if (whoStats.isNotEmpty) {
-            // Trouver la date de mise à jour la plus récente (s'assurer qu'elle est un DateTime)
             final lastUpdatedStat = whoStats.reduce(
-              (a, b) => a.lastUpdated.isAfter(b.lastUpdated) ? a : b,
+                  (a, b) => a.lastUpdated.isAfter(b.lastUpdated) ? a : b,
             );
 
             _lastWhoSyncDate = lastUpdatedStat.lastUpdated;
 
-            // Compter le nombre de codes pays uniques mis à jour
+            // Compter le nombre de codes pays uniques pour la dimension filtrée
             _uniqueCountryStatsCount = whoStats
                 .map((s) => s.countryCode)
                 .toSet()
                 .length;
           } else {
-            // Si whoStats est vide après la synchro, s'assurer que l'état reflète cela.
             _lastWhoSyncDate = null;
             _uniqueCountryStatsCount = 0;
           }
@@ -141,7 +180,6 @@ List<Map<String, dynamic>> _getMergedCountryData() {
         });
       }
     } catch (e) {
-      // Gérer l'erreur (e.g., afficher un message d'erreur à l'utilisateur)
       print("Erreur lors du chargement des statistiques: $e");
       if (mounted) {
         setState(() {
@@ -151,15 +189,15 @@ List<Map<String, dynamic>> _getMergedCountryData() {
     }
   }
 
-  // 💡 NOUVELLE FONCTION : Logique de Synchronisation Externe
-  // ----------------------------------------------------
-  Future<void> _syncWhoData() async {
-    print('🔄 Démarrage de la synchronisation des données WHO...');
-    // ✅ LA PAGE N'APPELLE QU'UNE SEULE MÉTHODE DE SYNCHRO
-    await WHOApiService.instance.syncAndSaveCancerStats();
+  // 💡 MODIFIÉ : Accepte un filtre de dimension
+  Future<void> _syncWhoData(String dimensionFilter) async {
+    print('🔄 Démarrage de la synchronisation des données WHO pour dimension: $dimensionFilter...');
+
     // 1. Appeler le service API pour récupérer les données (avec internet ou test data)
+    // 🎯 Passe le filtre à l'appel API
     final List<CountryStats> newStats = await WHOApiService.instance
-        .getCancerStatsByCountry();
+        .getCancerStatsByCountry(whoDimensionFilter: dimensionFilter);
+
     if (newStats.isNotEmpty) {
       // 2. Sauvegarder les données récupérées dans la DB locale
       await DatabaseService.instance.saveCountryStats(newStats);
@@ -181,61 +219,109 @@ List<Map<String, dynamic>> _getMergedCountryData() {
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
-          
+
           : RefreshIndicator(
-              onRefresh: _loadStatistics,
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(AppSizes.paddingL),
-                
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildSyncStatusCard(), // Statut des patients (Total)
-                    const SizedBox(height: AppSizes.paddingXL),
+            onRefresh: _loadStatistics,
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(AppSizes.paddingL),
 
-                    // Graphique 1 : Patients par Maladie
-                    _buildSectionTitle('Patients par Maladie'),
-                    patientsByDisease.isEmpty
-                        ? const Center(
-                            child: Text('Aucune donnée maladie disponible.'),
-                          )
-                        // REMPLACER PAR LE BAR CHART
-                        : BarChartCard(
-                            labelKey: 'maladie',
-                            data: patientsByDisease,
-                          ),
-                    const SizedBox(height: AppSizes.paddingXL),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildSyncStatusCard(), // Statut des patients (Total)
+                  const SizedBox(height: AppSizes.paddingXL),
 
-                    // Graphique 2 : Patients par Pays
-                    
-                    _buildSectionTitle('Patients (Local) vs Taux Mortalité (OMS)'),
-                    mergedCountryData.isEmpty
-                        ? const Text('Aucune donnée pays/OMS disponible.')
-                        : BarChartCard(
-                          // La nouvelle clé pour le nom du pays est 'country'
-                          labelKey: 'country', 
-                          data: mergedCountryData,
-                        ),
- 
-                    const SizedBox(height: AppSizes.paddingXL),
-                    // 3. STATUT DE SYNCHRONISATION WHO (Carte Verte/Rouge)
-                    _buildWhoSyncStatusCard(),
-                    const SizedBox(height: AppSizes.paddingXL),
-                    // 4. 💡 DÉTAILS DES STATISTIQUES WHO (LISTE PAYS PAR PAYS)
-                    // N'affiche la liste que si des données ont été synchronisées (whoStats n'est pas vide)
-                    if (_uniqueCountryStatsCount > 0)
-                      _buildWhoMortalityDetails(),
-                    const SizedBox(height: AppSizes.paddingXL),
-                  ],
-                ),
+                  // Graphique 1 : Patients par Maladie
+                  _buildSectionTitle('Patients par Maladie'),
+                  patientsByDisease.isEmpty
+                      ? const Center(
+                    child: Text('Aucune donnée maladie disponible.'),
+                  )
+                  // REMPLACER PAR LE BAR CHART
+                      : BarChartCard(
+                    labelKey: 'maladie',
+                    data: patientsByDisease,
+                  ),
+                  const SizedBox(height: AppSizes.paddingXL),
+
+                  // Graphique 2 : Patients par Pays
+
+                  _buildSectionTitle('Patients (Local) vs Taux Mortalité (OMS)'),
+                  mergedCountryData.isEmpty
+                      ? const Text('Aucune donnée pays/OMS disponible.')
+                      : BarChartCard(
+                    // La nouvelle clé pour le nom du pays est 'country'
+                    labelKey: 'country',
+                    data: mergedCountryData,
+                  ),
+
+                  const SizedBox(height: AppSizes.paddingXL),
+                  // 3. STATUT DE SYNCHRONISATION WHO (Carte Verte/Rouge)
+                  _buildWhoSyncStatusCard(),
+                  const SizedBox(height: AppSizes.paddingXL),
+
+                  // 🎯 NOUVEAU WIDGET : Le sélecteur de dimension
+                  _buildWhoDimensionFilter(),
+                  const SizedBox(height: AppSizes.paddingL),
+
+                  // 4. 💡 DÉTAILS DES STATISTIQUES WHO (LISTE PAYS PAR PAYS)
+                  // N'affiche la liste que si des données ont été synchronisées (whoStats n'est pas vide)
+                  if (_uniqueCountryStatsCount > 0)
+                    _buildWhoMortalityDetails(),
+                  const SizedBox(height: AppSizes.paddingXL),
+                ],
               ),
             ),
+          ),
     );
   }
 
-  // ----------------------------------------------------
-  // WIDGETS DE CONSTRUCTION
-  // ----------------------------------------------------
+// --- WIDGETS DE CONSTRUCTION MODIFIÉS/AJOUTÉS ---
+
+  // 🎯 NOUVEAU WIDGET : SÉLECTEUR DE DIMENSION WHO
+  Widget _buildWhoDimensionFilter() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: AppSizes.paddingL),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Filtrer les Statistiques OMS par Type de Cancer :',
+            style: TextStyle(fontWeight: FontWeight.w500),
+          ),
+          const SizedBox(height: AppSizes.paddingS),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: AppSizes.paddingL),
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.grey.shade400),
+              borderRadius: BorderRadius.circular(8.0),
+            ),
+            child: DropdownButtonHideUnderline(
+              child: DropdownButton<String>(
+                isExpanded: true,
+                value: _selectedWhoDimension,
+                items: whoDimensionOptions.entries.map((entry) {
+                  return DropdownMenuItem<String>(
+                    value: entry.key, // La valeur du filtre API (ex: 'BREAST')
+                    child: Text(entry.value), // Le nom affiché (ex: 'Cancer du Sein')
+                  );
+                }).toList(),
+                onChanged: (String? newValue) {
+                  if (newValue != null && newValue != _selectedWhoDimension) {
+                    setState(() {
+                      _selectedWhoDimension = newValue;
+                    });
+                    // Recharger les données WHO avec le nouveau filtre
+                    _loadStatistics();
+                  }
+                },
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
   Widget _buildSectionTitle(String title) {
     return Padding(
@@ -253,12 +339,12 @@ List<Map<String, dynamic>> _getMergedCountryData() {
     );
   }
 
-  /// Placeholder pour un graphique (sera remplacé par un BarChart, PieChart, etc.)
+  /// Placeholder pour un graphique
   Widget _buildChartCard(
-    BuildContext context,
-    String labelKey,
-    List<Map<String, dynamic>> data,
-  ) {
+      BuildContext context,
+      String labelKey,
+      List<Map<String, dynamic>> data,
+      ) {
     if (data.isEmpty) {
       return const Center(child: Text('Aucune donnée à afficher.'));
     }
@@ -300,16 +386,16 @@ List<Map<String, dynamic>> _getMergedCountryData() {
                 .take(5)
                 .map(
                   (e) => Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 4.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(e[labelKey] ?? 'Inconnu'),
-                        Text('${e['count']} patients'),
-                      ],
-                    ),
-                  ),
-                )
+                padding: const EdgeInsets.symmetric(vertical: 4.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(e[labelKey] ?? 'Inconnu'),
+                    Text('${e['count']} patients'),
+                  ],
+                ),
+              ),
+            )
                 .toList(),
           ],
         ),
@@ -319,7 +405,6 @@ List<Map<String, dynamic>> _getMergedCountryData() {
 
   /// Construit la liste détaillée des taux de mortalité de l'OMS par pays.
   Widget _buildWhoMortalityDetails() {
-    // Assurez-vous que la variable whoStats est bien peuplée dans _loadStatistics()
     if (whoStats.isEmpty) {
       return const SizedBox.shrink(); // Ne rien afficher si aucune donnée WHO
     }
@@ -330,15 +415,22 @@ List<Map<String, dynamic>> _getMergedCountryData() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildSectionTitle('Taux de Mortalité OMS par Pays'),
+        // 💡 Le titre reflète maintenant le filtre actuel
+        _buildSectionTitle(
+          'Taux de Mortalité OMS: ${whoDimensionOptions[_selectedWhoDimension]}',
+        ),
         const SizedBox(height: 10),
 
         // Liste des détails par pays
         ...whoStats.map((stat) {
-          // Formate la valeur du taux de mortalité
           final formattedValue = NumberFormat.decimalPattern().format(
             stat.value,
           );
+          // 💡 Déterminer le nom lisible de la dimension
+          final readableDimension = whoDimensionOptions.containsKey(stat.indicatorDimension)
+              ? whoDimensionOptions[stat.indicatorDimension]
+              : stat.indicatorDimension;
+
 
           return Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
@@ -346,6 +438,7 @@ List<Map<String, dynamic>> _getMergedCountryData() {
               elevation: 1,
               child: ListTile(
                 title: Text(
+                  // Affiche l'année si elle est pertinente
                   '${stat.countryName} (${stat.year})',
                   style: const TextStyle(fontWeight: FontWeight.w600),
                 ),
@@ -356,7 +449,8 @@ List<Map<String, dynamic>> _getMergedCountryData() {
                     color: Colors.red,
                   ),
                 ),
-                subtitle: Text('Indicateur: ${stat.indicator}'),
+                // 💡 Affiche la dimension de la stat (utile en mode 'ALL')
+                subtitle: Text('Type de Cancer: $readableDimension'),
               ),
             ),
           );

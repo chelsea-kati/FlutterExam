@@ -220,7 +220,7 @@ Tu es prêt à assister le médecin dans la prise en charge de ce patient.''';
       ''';
 
     try {
-      print('✨ Envoi de la requête de conseils à l\'IA...');
+      print(' Envoi de la requête de conseils à l\'IA...');
       final content = Content.text(prompt);
       final response = await model.generateContent([content]);
 

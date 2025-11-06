@@ -39,18 +39,18 @@ class _HomePageState extends State<HomePage> {
   );
 
   // Map des drapeaux pour chaque pays
-  final Map<String, String> _countryFlags = {
-    'Burundi': '🇧🇮',
-    'Rwanda': '🇷🇼',
-    'Kenya': '🇰🇪',
-    'Tanzania': '🇹🇿',
-    'Uganda': '🇺🇬',
-    'Ethiopia': '🇪🇹',
-    'Somalia': '🇸🇴',
-    'South Sudan': '🇸🇸',
-    'DR Congo': '🇨🇩',
-    'Mozambique': '🇲🇿',
-  };
+  // final Map<String, String> _countryFlags = {
+  //   'Burundi': '🇧🇮',
+  //   'Rwanda': '🇷🇼',
+  //   'Kenya': '🇰🇪',
+  //   'Tanzania': '🇹🇿',
+  //   'Uganda': '🇺🇬',
+  //   'Ethiopia': '🇪🇹',
+  //   'Somalia': '🇸🇴',
+  //   'South Sudan': '🇸🇸',
+  //   'DR Congo': '🇨🇩',
+  //   'Mozambique': '🇲🇿',
+  // };
 
   @override
   void initState() {
@@ -164,8 +164,8 @@ class _HomePageState extends State<HomePage> {
 
   @override
   void dispose() {
-    _searchController.dispose(); // 💡 NOUVEAU : Nettoyage du contrôleur
-    _debouncer.dispose(); // 💡 NOUVEAU : Nettoyage du Debouncer
+    _searchController.dispose(); //  NOUVEAU : Nettoyage du contrôleur
+    _debouncer.dispose(); //  NOUVEAU : Nettoyage du Debouncer
     super.dispose();
   }
 
@@ -350,7 +350,7 @@ class _HomePageState extends State<HomePage> {
                         childAspectRatio: 0.90,
                         children: [
                           MetricCard(
-                            title: 'Patients Actifs',
+                            title: 'Total Patients ',
                             value: '$_patientCount',
                             subtitle: 'Total enregistrés',
                             color: AppColors.tealCard,
@@ -366,50 +366,68 @@ class _HomePageState extends State<HomePage> {
                               );
                             },
                           ),
+                          // MetricCard(
+                          //   title: 'Consultations',
+                          //   value: '$_patientCount',
+                          //   subtitle: 'Total enregistrés',
+                          //   color: AppColors.purpleCard,
+                          //   icon: Icons.medical_services_rounded,
+                          //   onTap: () {
+                          //     ScaffoldMessenger.of(context).showSnackBar(
+                          //       const SnackBar(
+                          //         content: Text(
+                          //           'Consultations - En développement!',
+                          //         ),
+                          //         duration: Duration(seconds: 2),
+                          //       ),
+                          //     );
+                          //   },
+                          // ),
+                          // MetricCard(
+                          //   title: 'Suivi Mental',
+                          //   value: '$_patientCount',
+                          //   subtitle: 'Total enregistrés',
+                          //   color: AppColors.greenCard,
+                          //   icon: Icons.psychology_rounded,
+                          //   onTap: () {
+                          //     ScaffoldMessenger.of(context).showSnackBar(
+                          //       const SnackBar(
+                          //         content: Text(
+                          //           'Suivi mental - Bientôt disponible!',
+                          //         ),
+                          //         duration: Duration(seconds: 2),
+                          //       ),
+                          //     );
+                          //   },
+                          // ),
+                          // MetricCard(
+                          //   title: 'Urgences',
+                          //   value: '$_patientCount',
+                          //   subtitle: 'Total enregistrés',
+                          //   color: AppColors.orangeCard,
+                          //   icon: Icons.emergency_rounded,
+                          //   onTap: () {
+                          //     ScaffoldMessenger.of(context).showSnackBar(
+                          //       const SnackBar(
+                          //         content: Text('Urgences - En développement!'),
+                          //         duration: Duration(seconds: 2),
+                          //       ),
+                          //     );
+                          //   },
+                          // ),
                           MetricCard(
-                            title: 'Consultations',
-                            value: '$_patientCount',
-                            subtitle: 'Total enregistrés',
+                            title: 'Nouveaux aujourd\'hui',
+                            // Remplacer par une valeur stable pour la démo
+                            value: '2',
+                            subtitle: 'Ajoutés récemment',
                             color: AppColors.purpleCard,
-                            icon: Icons.medical_services_rounded,
+                            icon: Icons.person_add_alt_1_rounded,
                             onTap: () {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
                                   content: Text(
-                                    'Consultations - En développement!',
+                                    'Cette métrique est une simulation pour la démo.',
                                   ),
-                                  duration: Duration(seconds: 2),
-                                ),
-                              );
-                            },
-                          ),
-                          MetricCard(
-                            title: 'Suivi Mental',
-                            value: '$_patientCount',
-                            subtitle: 'Total enregistrés',
-                            color: AppColors.greenCard,
-                            icon: Icons.psychology_rounded,
-                            onTap: () {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text(
-                                    'Suivi mental - Bientôt disponible!',
-                                  ),
-                                  duration: Duration(seconds: 2),
-                                ),
-                              );
-                            },
-                          ),
-                          MetricCard(
-                            title: 'Urgences',
-                            value: '$_patientCount',
-                            subtitle: 'Total enregistrés',
-                            color: AppColors.orangeCard,
-                            icon: Icons.emergency_rounded,
-                            onTap: () {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Urgences - En développement!'),
                                   duration: Duration(seconds: 2),
                                 ),
                               );
@@ -417,8 +435,8 @@ class _HomePageState extends State<HomePage> {
                           ),
                         ],
                       ),
-
-                      const SizedBox(height: AppSizes.paddingXL),
+                    // Petite correction de l'espacement pour les 2 cartes
+                      const SizedBox(height: AppSizes.paddingL),
 
                       // Section Patients récents
                       Row(
@@ -431,7 +449,7 @@ class _HomePageState extends State<HomePage> {
                           ),
                           TextButton(
                             onPressed: () async {
-                              // 💡 Assurez-vous de rafraîchir la Home Page si un patient est supprimé ou modifié
+                              //  Assurez-vous de rafraîchir la Home Page si un patient est supprimé ou modifié
                               await Navigator.push(
                                 context,
                                 MaterialPageRoute(
@@ -489,157 +507,156 @@ class _HomePageState extends State<HomePage> {
                       const SizedBox(height: AppSizes.paddingXL),
 
                       // Section Statistiques par pays
-                      Text(
-                        'Statistiques par Pays',
-                        style: Theme.of(context).textTheme.headlineSmall
-                            ?.copyWith(fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: AppSizes.paddingM),
+                      // Text(
+                      //   'Statistiques par Pays',
+                      //   style: Theme.of(context).textTheme.headlineSmall
+                      //       ?.copyWith(fontWeight: FontWeight.bold),
+                      // ),
+                      // const SizedBox(height: AppSizes.paddingM),
 
-                      // Affichage stats WHO
-                      // 1. ÉTAT DE CHARGEMENT
-                      if (_isLoadingStats)
-                        const Center(
-                          child: Padding(
-                            padding: EdgeInsets.all(32.0),
-                            child: CircularProgressIndicator(),
-                          ),
-                        )
-                      else if (_whoStats.isEmpty)
-                        Center(
-                          child: Padding(
-                            padding: const EdgeInsets.all(20.0),
-                            child: Column(
-                              children: [
-                                Icon(
-                                  Icons.signal_wifi_off_rounded,
-                                  size: 48,
-                                  color: Colors.grey[400],
-                                ),
-                                const SizedBox(height: 10),
-                                Text(
-                                  'Aucune statistique disponible',
-                                  style: TextStyle(
-                                    color: Colors.grey[600],
-                                    fontSize: 14,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        )
-                      else
-                        // Utilisez un Column pour lister vos Cards, comme vous le faisiez
-                        Column(
-                          children: _whoStats.map((stat) {
-                            final flag =
-                                _countryFlags[stat.countryName] ?? '🌍';
-                            return Card(
-                              elevation: 2,
-                              margin: const EdgeInsets.only(bottom: 12),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                              child: Padding(
-                                padding: const EdgeInsets.all(
-                                  AppSizes.paddingL,
-                                ),
-                                child: Column(
-                                  children: [
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Row(
-                                          children: [
-                                            Container(
-                                              width: 50,
-                                              height: 50,
-                                              decoration: BoxDecoration(
-                                                color: AppColors.primary
-                                                    .withOpacity(0.1),
-                                                borderRadius:
-                                                    BorderRadius.circular(12),
-                                              ),
-                                              child: Center(
-                                                child: Text(
-                                                  flag,
-                                                  style: const TextStyle(
-                                                    fontSize: 28,
-                                                  ),
-                                                ),
-                                              ),
-                                            ),
-                                            const SizedBox(width: 12),
-                                            Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                Text(
-                                                  stat.countryName,
-                                                  style: const TextStyle(
-                                                    fontSize: 16,
-                                                    fontWeight: FontWeight.w600,
-                                                  ),
-                                                ),
-                                                Text(
-                                                  'Année: ${stat.year}',
-                                                  style: TextStyle(
-                                                    fontSize: 12,
-                                                    color: Colors.grey[600],
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ],
-                                        ),
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 12,
-                                            vertical: 6,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color: AppColors.primary
-                                                .withOpacity(0.1),
-                                            borderRadius: BorderRadius.circular(
-                                              20,
-                                            ),
-                                          ),
-                                          child: Text(
-                                            '${stat.value.toStringAsFixed(1)}',
-                                            style: TextStyle(
-                                              color: AppColors.primary,
-                                              fontWeight: FontWeight.w600,
-                                              fontSize: 14,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 12),
-                                    ClipRRect(
-                                      borderRadius: BorderRadius.circular(10),
-                                      child: LinearProgressIndicator(
-                                        value: (stat.value / 300).clamp(
-                                          0.0,
-                                          1.0,
-                                        ),
-                                        backgroundColor:
-                                            AppColors.surfaceVariant,
-                                        valueColor:
-                                            AlwaysStoppedAnimation<Color>(
-                                              AppColors.primary,
-                                            ),
-                                        minHeight: 8,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            );
-                          }).toList(),
-                        ),
-
+                      // // Affichage stats WHO
+                      // // 1. ÉTAT DE CHARGEMENT
+                      // if (_isLoadingStats)
+                      //   const Center(
+                      //     child: Padding(
+                      //       padding: EdgeInsets.all(32.0),
+                      //       child: CircularProgressIndicator(),
+                      //     ),
+                      //   )
+                      // else if (_whoStats.isEmpty)
+                      //   Center(
+                      //     child: Padding(
+                      //       padding: const EdgeInsets.all(20.0),
+                      //       child: Column(
+                      //         children: [
+                      //           Icon(
+                      //             Icons.signal_wifi_off_rounded,
+                      //             size: 48,
+                      //             color: Colors.grey[400],
+                      //           ),
+                      //           const SizedBox(height: 10),
+                      //           Text(
+                      //             'Aucune statistique disponible',
+                      //             style: TextStyle(
+                      //               color: Colors.grey[600],
+                      //               fontSize: 14,
+                      //             ),
+                      //           ),
+                      //         ],
+                      //       ),
+                      //     ),
+                      //   )
+                      // else
+                      //   // Utilisez un Column pour lister vos Cards, comme vous le faisiez
+                      //   Column(
+                      //     children: _whoStats.map((stat) {
+                      //       final flag =
+                      //           _countryFlags[stat.countryName] ?? '🌍';
+                      //       return Card(
+                      //         elevation: 2,
+                      //         margin: const EdgeInsets.only(bottom: 12),
+                      //         shape: RoundedRectangleBorder(
+                      //           borderRadius: BorderRadius.circular(16),
+                      //         ),
+                      //         child: Padding(
+                      //           padding: const EdgeInsets.all(
+                      //             AppSizes.paddingL,
+                      //           ),
+                      //           child: Column(
+                      //             children: [
+                      //               Row(
+                      //                 mainAxisAlignment:
+                      //                     MainAxisAlignment.spaceBetween,
+                      //                 children: [
+                      //                   Row(
+                      //                     children: [
+                      //                       Container(
+                      //                         width: 50,
+                      //                         height: 50,
+                      //                         decoration: BoxDecoration(
+                      //                           color: AppColors.primary
+                      //                               .withOpacity(0.1),
+                      //                           borderRadius:
+                      //                               BorderRadius.circular(12),
+                      //                         ),
+                      //                         child: Center(
+                      //                           child: Text(
+                      //                             flag,
+                      //                             style: const TextStyle(
+                      //                               fontSize: 28,
+                      //                             ),
+                      //                           ),
+                      //                         ),
+                      //                       ),
+                      //                       const SizedBox(width: 12),
+                      //                       Column(
+                      //                         crossAxisAlignment:
+                      //                             CrossAxisAlignment.start,
+                      //                         children: [
+                      //                           Text(
+                      //                             stat.countryName,
+                      //                             style: const TextStyle(
+                      //                               fontSize: 16,
+                      //                               fontWeight: FontWeight.w600,
+                      //                             ),
+                      //                           ),
+                      //                           Text(
+                      //                             'Année: ${stat.year}',
+                      //                             style: TextStyle(
+                      //                               fontSize: 12,
+                      //                               color: Colors.grey[600],
+                      //                             ),
+                      //                           ),
+                      //                         ],
+                      //                       ),
+                      //                     ],
+                      //                   ),
+                      //                   Container(
+                      //                     padding: const EdgeInsets.symmetric(
+                      //                       horizontal: 12,
+                      //                       vertical: 6,
+                      //                     ),
+                      //                     decoration: BoxDecoration(
+                      //                       color: AppColors.primary
+                      //                           .withOpacity(0.1),
+                      //                       borderRadius: BorderRadius.circular(
+                      //                         20,
+                      //                       ),
+                      //                     ),
+                      //                     child: Text(
+                      //                       '${stat.value.toStringAsFixed(1)}',
+                      //                       style: TextStyle(
+                      //                         color: AppColors.primary,
+                      //                         fontWeight: FontWeight.w600,
+                      //                         fontSize: 14,
+                      //                       ),
+                      //                     ),
+                      //                   ),
+                      //                 ],
+                      //               ),
+                      //               const SizedBox(height: 12),
+                      //               ClipRRect(
+                      //                 borderRadius: BorderRadius.circular(10),
+                      //                 child: LinearProgressIndicator(
+                      //                   value: (stat.value / 300).clamp(
+                      //                     0.0,
+                      //                     1.0,
+                      //                   ),
+                      //                   backgroundColor:
+                      //                       AppColors.surfaceVariant,
+                      //                   valueColor:
+                      //                       AlwaysStoppedAnimation<Color>(
+                      //                         AppColors.primary,
+                      //                       ),
+                      //                   minHeight: 8,
+                      //                 ),
+                      //               ),
+                      //             ],
+                      //           ),
+                      //         ),
+                      //       );
+                      //     }).toList(),
+                      //   ),
                       const SizedBox(height: 40),
                     ],
                   ),

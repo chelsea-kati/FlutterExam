@@ -178,11 +178,11 @@ class _ProfilePageState extends State<ProfilePage> {
         title: const Text(AppStrings.profile),
         automaticallyImplyLeading: false,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.logout_rounded),
-            onPressed: () => _showLogoutDialog(context),
-            tooltip: 'Se déconnecter',
-          ),
+          // IconButton(
+          //   icon: const Icon(Icons.logout_rounded),
+          //   onPressed: () => _showLogoutDialog(context),
+          //   tooltip: 'Se déconnecter',
+          // ),
         ],
       ),
       body: user == null
@@ -505,19 +505,19 @@ class _ProfilePageState extends State<ProfilePage> {
             },
           ),
           const Divider(height: 1),
-          _buildActionTile(
-            icon: Icons.settings_outlined,
-            title: 'Paramètres',
-            subtitle: 'Configurer l\'application',
-            color: AppColors.info,
-            onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Paramètres - Bientôt disponible'),
-                ),
-              );
-            },
-          ),
+          // _buildActionTile(
+          //   icon: Icons.settings_outlined,
+          //   title: 'Paramètres',
+          //   subtitle: 'Configurer l\'application',
+          //   color: AppColors.info,
+          //   onTap: () {
+          //     ScaffoldMessenger.of(context).showSnackBar(
+          //       const SnackBar(
+          //         content: Text('Paramètres - Bientôt disponible'),
+          //       ),
+          //     );
+          //   },
+          // ),
         ],
       ),
     );

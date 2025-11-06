@@ -6,6 +6,7 @@ class CountryStats {
   final double value;
   final int year;
   final String indicator;
+  final String indicatorDimension;
   final DateTime lastUpdated;
 
   CountryStats({
@@ -15,8 +16,21 @@ class CountryStats {
     required this.value,
     required this.year,
     required this.indicator,
+    required this.indicatorDimension,
     required this.lastUpdated,
   });
+
+  // Map de conversion pour la dimension OMS (Dim1)
+  static final Map<String, String> _indicatorDimensionNames = {
+    // ⚠️ Ces codes sont des exemples. Vous devez les vérifier
+    // dans la documentation de l'API de l'OMS pour l'indicateur utilisé.
+    'ALL': 'Tous les Cancers',
+    'BREAST': 'Cancer du Sein',
+    'COLORECTAL': 'Cancer Colorectal',
+    'LUNG': 'Cancer du Poumon',
+    'PROSTATE': 'Cancer de la Prostate',
+    // ... Ajoutez d'autres si nécessaire ...
+  };
 
   // Convertir un objet Map (lu depuis la DB) en objet CountryStats
   factory CountryStats.fromMap(Map<String, dynamic> map) {
@@ -27,6 +41,7 @@ class CountryStats {
       value: map['value'] as double,
       year: map['year'] as int,
       indicator: map['indicator'] as String,
+      indicatorDimension: map['indicatorDimension'] as String,
       lastUpdated: DateTime.parse(map['lastUpdated']),
     );
   }
@@ -40,6 +55,7 @@ class CountryStats {
       'value': value,
       'year': year,
       'indicator': indicator,
+      'indicatorDimension': indicatorDimension,
       'lastUpdated': lastUpdated
           .toIso8601String(), // ⚠️ Rappel : Stocker au format ISO8601 pour DB
     };
@@ -54,6 +70,7 @@ class CountryStats {
           int.tryParse(json['TimeDim']?.toString() ?? '0') ??
           DateTime.now().year,
       indicator: json['IndicatorCode'] ?? '',
+      indicatorDimension: json['indicatorDimension'] ?? '',
       lastUpdated: DateTime.now(),
     );
   }

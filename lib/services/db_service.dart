@@ -90,14 +90,15 @@ class DatabaseService {
  value REAL NOT NULL,
  year INTEGER NOT NULL,
  indicator TEXT NOT NULL,
+ indicatorDimension TEXT NOT NULL,
  lastUpdated TEXT NOT NULL,
- UNIQUE(countryCode, year, indicator)
+ UNIQUE(countryCode, year, indicator, indicatorDimension)
  )
  ''');
-    print('✅ Table country_stats créée');
+    print(' Table country_stats créée');
     // Insérer les données de test
     await _insertTestData(db);
-    // ✨ NOUVEAU : Table des conseils
+    //  NOUVEAU : Table des conseils
     await db.execute('''
  CREATE TABLE conseils (
  id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -280,7 +281,7 @@ Future<void> insertInitialSponsors(Database db) async {
   final initialSponsors = [
     Sponsor(
     id: 1,
-    name: 'Santé Plus (Maladie A)', // 👈 'name' au lieu de 'nom'
+    name: 'Santé Plus (Maladie A)', //  'name' au lieu de 'nom'
     imageUrl: 'assets/images/logo_sante_plus.png',
     websiteUrl: 'https://santeplus.org',
     // ✅ AJOUT DES CHAMPS OBLIGATOIRES par le constructeur du modèle :
@@ -290,7 +291,7 @@ Future<void> insertInitialSponsors(Database db) async {
   ).toMap(),
 Sponsor(
     id: 2,
-    name: 'Global Aid (Maladie B)', // 👈 Utiliser 'name' au lieu de 'nom'
+    name: 'Global Aid (Maladie B)', //  Utiliser 'name' au lieu de 'nom'
     imageUrl: 'assets/images/logo_global_aid.png',
     websiteUrl: 'https://globalaid.org',    
     description: 'Financement de projets humanitaires pour les régions touchées par les maladies.', 
@@ -546,7 +547,7 @@ Future<List<Patient>> getRecentPatients(int limit) async {
     await db.close();
   }
 
-  // 🛠️ MÉTHODE DEBUG : Afficher toutes les données
+  //  MÉTHODE DEBUG : Afficher toutes les données
   Future<void> debugPrintAllData() async {
     // ... (Logique inchangée)
     print('\n========== DEBUG DATABASE ==========');
