@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 // import '../utils/constants.dart' as constants;
 import '../widgets/metric_card.dart';
-import '../widgets/patient_card.dart';
 import '../models/patient.dart';
 import '../services/db_service.dart';
 import '../pages/patient_detail.dart';

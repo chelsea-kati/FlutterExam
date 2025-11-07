@@ -11,9 +11,10 @@ import 'pages/SponsorPage.dart';
 import 'pages/login_page.dart';
 import 'pages/profil_page.dart'; // ✅ Import de la vraie page de profil
 import 'services/auth_service.dart';
+import 'services/settings_service.dart';
 
 void main() async {
-  // ✅ Initialiser Flutter
+  //  Initialiser Flutter
   WidgetsFlutterBinding.ensureInitialized();
   
   runApp(const PlaidoyerSanteApp());
@@ -71,7 +72,6 @@ class _AuthCheckState extends State<AuthCheck> {
   Future<void> _checkLoginStatus() async {
     final authService = AuthService.instance;
     
-
     final isLoggedIn = authService.isLoggedIn(); 
 
     if (mounted) {

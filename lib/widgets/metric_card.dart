@@ -1,6 +1,4 @@
-// Créer metric_card.dart dans ton dossier widgets/ pour garder les jolies cartes statistiques.
 // lib/widgets/metric_card.dart
-// Commençons par organiser ton projet Flutter avec les bonnes couleurs et la structure que tu as mentionnée.
 
 import 'package:flutter/material.dart';
 
@@ -23,15 +21,10 @@ class AppColors {
   static const Color primaryDark = Color(0xFF4C46CC); // Violet foncé
   static const Color accent = Colors.orange;
 
-
   // Couleurs des cartes métriques
-  static const Color tealCard = Color(
-    0xFF4ECDC4,
-  ); // Carte turquoise (Journal Stats)
-  static const Color purpleCard = Color(
-    0xFF9B59B6,
-  ); // Carte violette (Sleep Report)
-  static const Color orangeCard = Color(0xFFE67E22); // Carte orange/pêche
+  static const Color tealCard = Color(0xFF4ECDC4); // Carte turquoise
+  static const Color purpleCard = Color(0xFF9B59B6); // Carte violette
+  static const Color orangeCard = Color(0xFFE67E22); // Carte orange
   static const Color greenCard = Color(0xFF2ECC71); // Carte verte
   static const Color blueCard = Color(0xFF3498DB); // Carte bleue
   static const Color pinkCard = Color(0xFFE91E63); // Carte rose
@@ -46,9 +39,7 @@ class AppColors {
   static const Color textPrimary = Color(0xFF2C3E50); // Texte principal
   static const Color textSecondary = Color(0xFF7F8C8D); // Texte secondaire
   static const Color textLight = Color(0xFFBDC3C7); // Texte clair
-  static const Color textOnPrimary = Color(
-    0xFFFFFFFF,
-  ); // Texte sur couleur primaire
+  static const Color textOnPrimary = Color(0xFFFFFFFF); // Texte sur couleur primaire
 
   // Couleurs d'état
   static const Color success = Color(0xFF27AE60); // Succès
@@ -66,9 +57,12 @@ class AppColors {
 }
 
 class AppTheme {
-  // Thème clair
+  // ========================================================================
+  // THÈME CLAIR
+  // ========================================================================
   static ThemeData lightTheme = ThemeData(
     useMaterial3: true,
+    brightness: Brightness.light,
     colorScheme: const ColorScheme.light(
       primary: AppColors.primary,
       secondary: AppColors.primaryLight,
@@ -171,6 +165,115 @@ class AppTheme {
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
     ),
   );
+
+  // ========================================================================
+  //  THÈME SOMBRE (NOUVEAU)
+  // ========================================================================
+  static ThemeData darkTheme = ThemeData(
+    useMaterial3: true,
+    brightness: Brightness.dark,
+    colorScheme: ColorScheme.dark(
+      primary: AppColors.primary,
+      secondary: AppColors.primaryLight,
+      surface: const Color(0xFF1E1E1E),
+      background: const Color(0xFF121212),
+      error: AppColors.error,
+      onPrimary: AppColors.textOnPrimary,
+      onSecondary: AppColors.textOnPrimary,
+      onSurface: Colors.white,
+      onBackground: Colors.white,
+      onError: AppColors.textOnPrimary,
+    ),
+
+    // Configuration des cartes en mode sombre
+    cardTheme: CardThemeData(
+      color: const Color(0xFF2C2C2C),
+      elevation: 4,
+      shadowColor: Colors.black.withOpacity(0.5),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      margin: const EdgeInsets.all(8),
+    ),
+
+    // Configuration des boutons en mode sombre
+    elevatedButtonTheme: ElevatedButtonThemeData(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: AppColors.primary,
+        foregroundColor: AppColors.textOnPrimary,
+        elevation: 2,
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+    ),
+
+    // Configuration de l'AppBar en mode sombre
+    appBarTheme: const AppBarTheme(
+      backgroundColor: Color(0xFF1E1E1E),
+      foregroundColor: Colors.white,
+      elevation: 0,
+      centerTitle: true,
+      titleTextStyle: TextStyle(
+        fontSize: 20,
+        fontWeight: FontWeight.w600,
+        color: Colors.white,
+      ),
+    ),
+
+    // Configuration du texte en mode sombre
+    textTheme: const TextTheme(
+      headlineLarge: TextStyle(
+        fontSize: 32,
+        fontWeight: FontWeight.bold,
+        color: Colors.white,
+      ),
+      headlineMedium: TextStyle(
+        fontSize: 28,
+        fontWeight: FontWeight.w600,
+        color: Colors.white,
+      ),
+      headlineSmall: TextStyle(
+        fontSize: 24,
+        fontWeight: FontWeight.w600,
+        color: Colors.white,
+      ),
+      titleLarge: TextStyle(
+        fontSize: 22,
+        fontWeight: FontWeight.w600,
+        color: Colors.white,
+      ),
+      titleMedium: TextStyle(
+        fontSize: 16,
+        fontWeight: FontWeight.w500,
+        color: Colors.white,
+      ),
+      titleSmall: TextStyle(
+        fontSize: 14,
+        fontWeight: FontWeight.w500,
+        color: Colors.white70,
+      ),
+      bodyLarge: TextStyle(fontSize: 16, color: Colors.white),
+      bodyMedium: TextStyle(fontSize: 14, color: Colors.white),
+      bodySmall: TextStyle(fontSize: 12, color: Colors.white70),
+    ),
+
+    // Configuration des input fields en mode sombre
+    inputDecorationTheme: InputDecorationTheme(
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: Color(0xFF424242)),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: Color(0xFF424242)),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: AppColors.primary, width: 2),
+      ),
+      filled: true,
+      fillColor: const Color(0xFF2C2C2C),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+    ),
+  );
 }
 
 class AppSizes {
@@ -227,7 +330,7 @@ class MetricCard extends StatelessWidget {
   final String subtitle;
   final Color color;
   final IconData icon;
-  final VoidCallback? onTap; // ✅ Ajout du paramètre onTap
+  final VoidCallback? onTap;
 
   const MetricCard({
     super.key,
@@ -236,13 +339,13 @@ class MetricCard extends StatelessWidget {
     required this.subtitle,
     required this.color,
     required this.icon,
-    this.onTap, // ✅ Paramètre optionnel
+    this.onTap,
   });
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      // ✅ AJOUTEZ CETTE LIGNE
-      onTap: onTap, // ✅ AJOUTEZ CETTE LIGNE
+      onTap: onTap,
       child: Card(
         elevation: 4,
         shadowColor: color.withOpacity(0.3),
@@ -284,10 +387,9 @@ class MetricCard extends StatelessWidget {
               Text(
                 value,
                 style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
-                  fontSize: 28,
-                ),
+                      fontWeight: FontWeight.bold,
+                      fontSize: 28,
+                    ),
               ),
 
               const SizedBox(height: 4),
@@ -296,9 +398,8 @@ class MetricCard extends StatelessWidget {
               Text(
                 title,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textPrimary,
-                ),
+                      fontWeight: FontWeight.w600,
+                    ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -308,9 +409,7 @@ class MetricCard extends StatelessWidget {
               // Sous-titre
               Text(
                 subtitle,
-                style: Theme.of(
-                  context,
-                ).textTheme.bodySmall?.copyWith(color: AppColors.textSecondary),
+                style: Theme.of(context).textTheme.bodySmall,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
