@@ -427,9 +427,9 @@ class _StatisticsPageState extends State<StatisticsPage> {
             stat.value,
           );
           // 💡 Déterminer le nom lisible de la dimension
-          final readableDimension = whoDimensionOptions.containsKey(stat.indicatorDimension)
-              ? whoDimensionOptions[stat.indicatorDimension]
-              : stat.indicatorDimension;
+          final readableDimension = whoDimensionOptions.containsKey(stat.indicator)
+              ? whoDimensionOptions[stat.indicator]
+              : stat.indicator;
 
 
           return Padding(
