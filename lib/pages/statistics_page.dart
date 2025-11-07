@@ -425,7 +425,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
         ...whoStats.map((stat) {
           final formattedValue = NumberFormat.decimalPattern().format(
             stat.value,
-          );
+          );  
           // 💡 Déterminer le nom lisible de la dimension
           final readableDimension = whoDimensionOptions.containsKey(stat.indicator)
               ? whoDimensionOptions[stat.indicator]

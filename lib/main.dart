@@ -1,43 +1,96 @@
-// lib/main.dart
+// lib/main.dart - Version avec gestion du ThemeMode (Mode Sombre)
 
 import 'package:flutter/material.dart';
-import 'widgets/metric_card.dart';
+// Note : J'ai retiré les imports non définis ici (AppConstants, AppColors, AppTheme, AppStrings)
+// en supposant qu'ils sont définis dans les fichiers 'metric_card.dart' ou 'theme/app_theme.dart'
+
 import 'pages/home_page.dart';
-import 'widgets/placeholder_page.dart';
 import 'pages/add_patient.dart';
 import 'pages/statistics_page.dart';
-import 'pages/ai_chat_page.dart';
 import 'pages/SponsorPage.dart';
 import 'pages/login_page.dart';
-import 'pages/profil_page.dart'; // ✅ Import de la vraie page de profil
+import 'pages/profil_page.dart'; // Import de la vraie page de profil
 import 'services/auth_service.dart';
-import 'services/settings_service.dart';
+import 'services/settings_service.dart'; // ✅ Nécessaire pour charger/sauvegarder le thème
+import 'widgets/metric_card.dart';
+
+// ----------------------------------------------------------------------
+// INITIALISATION ET WIDGET RACINE
+// ----------------------------------------------------------------------
 
 void main() async {
-  //  Initialiser Flutter
+  // 1. Initialiser Flutter
   WidgetsFlutterBinding.ensureInitialized();
   
-  runApp(const PlaidoyerSanteApp());
+  // 2. Charger les paramètres (pour restaurer le mode sombre si défini)
+  // Assurez-vous que SettingsService a une méthode loadSettings() et getDarkMode()
+  await SettingsService.instance.loadSettings();
+  
+  // 3. Le widget racine gère maintenant le thème
+  runApp(const ThemeWrapper());
 }
 
 // ----------------------------------------------------------------------
-// WIDGET PRINCIPAL DE L'APPLICATION
+// 💡 WIDGET DE GESTION DU THÈME (Remplace l'ancienne PlaidoyerSanteApp)
 // ----------------------------------------------------------------------
 
-class PlaidoyerSanteApp extends StatelessWidget {
-  const PlaidoyerSanteApp({super.key});
+class ThemeWrapper extends StatefulWidget {
+  const ThemeWrapper({super.key});
+
+  // Méthode statique pour obtenir l'état et déclencher la reconstruction (appelée par la ProfilePage)
+  static _ThemeWrapperState of(BuildContext context) =>
+      context.findAncestorStateOfType<_ThemeWrapperState>()!;
+
+  @override
+  State<ThemeWrapper> createState() => _ThemeWrapperState();
+}
+
+class _ThemeWrapperState extends State<ThemeWrapper> {
+  ThemeMode _themeMode = ThemeMode.light;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadThemeSetting();
+  }
+
+  Future<void> _loadThemeSetting() async {
+    // Supposons que SettingsService.getDarkMode() retourne un Future<bool>
+    final bool isDarkMode = await SettingsService.instance.getDarkMode();
+    if (mounted) {
+      setState(() {
+        _themeMode = isDarkMode ? ThemeMode.dark : ThemeMode.light;
+      });
+    }
+  }
+  
+  // 🎯 Méthode publique pour changer le thème (utilisée dans ProfilePage)
+  void setMode(bool isDarkMode) {
+    // 1. Sauvegarde le paramètre
+    SettingsService.instance.setDarkMode(isDarkMode); 
+    
+    // 2. Met à jour l'état et force la reconstruction
+    setState(() {
+      _themeMode = isDarkMode ? ThemeMode.dark : ThemeMode.light;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
+    // Les classes AppConstants, AppTheme sont supposées accessibles.
     return MaterialApp(
       title: AppConstants.appName,
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.lightTheme,
+      
+      // ✅ Configuration Cruciale du Mode Sombre :
+      theme: AppTheme.lightTheme, 
+      darkTheme: AppTheme.darkTheme, 
+      themeMode: _themeMode, // ⬅️ L'état du thème
 
       // L'écran de démarrage est la vérification d'authentification
       home: const AuthCheck(), 
 
-      // Configuration des routes
+      // Configuration des routes (inchangée)
       routes: {
         '/login': (context) => const LoginPage(),
         '/home': (context) => const MainNavigation(),
@@ -49,7 +102,7 @@ class PlaidoyerSanteApp extends StatelessWidget {
 }
 
 // ----------------------------------------------------------------------
-// LOGIQUE D'AUTHENTIFICATION AU DÉMARRAGE
+// LOGIQUE D'AUTHENTIFICATION AU DÉMARRAGE (AuthCheck)
 // ----------------------------------------------------------------------
 
 class AuthCheck extends StatefulWidget {
@@ -71,7 +124,6 @@ class _AuthCheckState extends State<AuthCheck> {
 
   Future<void> _checkLoginStatus() async {
     final authService = AuthService.instance;
-    
     final isLoggedIn = authService.isLoggedIn(); 
 
     if (mounted) {
@@ -84,10 +136,13 @@ class _AuthCheckState extends State<AuthCheck> {
 
   @override
   Widget build(BuildContext context) {
+    // 💡 IMPORTANT : Utiliser Theme.of(context) pour s'adapter au thème clair/sombre
+    final theme = Theme.of(context);
+    
     if (_isLoading) {
       // Écran de chargement avec le logo de l'app
       return Scaffold(
-        backgroundColor: AppColors.background,
+        backgroundColor: theme.scaffoldBackgroundColor, // Adapté au thème
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -97,31 +152,31 @@ class _AuthCheckState extends State<AuthCheck> {
                 width: 120,
                 height: 120,
                 decoration: BoxDecoration(
-                  color: AppColors.primary,
+                  color: theme.primaryColor, // Adapté au thème
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.primary.withOpacity(0.3),
+                      color: theme.primaryColor.withOpacity(0.3),
                       blurRadius: 20,
                       offset: const Offset(0, 10),
                     ),
                   ],
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.local_hospital_rounded,
                   size: 70,
-                  color: AppColors.textOnPrimary,
+                  color: theme.colorScheme.onPrimary, // Texte sur couleur primaire
                 ),
               ),
               const SizedBox(height: 24),
-              const CircularProgressIndicator(color: AppColors.primary),
+              CircularProgressIndicator(color: theme.primaryColor), // Adapté au thème
               const SizedBox(height: 16),
               Text(
                 AppConstants.appName,
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.primary,
+                  color: theme.primaryColor, // Adapté au thème
                 ),
               ),
             ],
@@ -136,7 +191,7 @@ class _AuthCheckState extends State<AuthCheck> {
 }
 
 // ----------------------------------------------------------------------
-// NAVIGATION PRINCIPALE
+// NAVIGATION PRINCIPALE (MainNavigation)
 // ----------------------------------------------------------------------
 
 class MainNavigation extends StatefulWidget {
@@ -158,6 +213,9 @@ class _MainNavigationState extends State<MainNavigation> {
 
   @override
   Widget build(BuildContext context) {
+    // Récupérer les couleurs du thème (qui incluent celles du BottomNavigationBar)
+    final theme = Theme.of(context); 
+    
     return Scaffold(
       body: _pages[_currentIndex],
       bottomNavigationBar: BottomNavigationBar(
@@ -168,9 +226,12 @@ class _MainNavigationState extends State<MainNavigation> {
             _currentIndex = index;
           });
         },
-        selectedItemColor: AppColors.primary,
-        unselectedItemColor: AppColors.textSecondary,
-        backgroundColor: AppColors.surface,
+        // 💡 CONSEIL : Laissez le thème global (AppTheme) gérer ces couleurs.
+        // Si vous les laissez en AppColors.xxx en dur, elles ne changeront pas en mode sombre.
+        // Si AppTheme est correctement configuré, vous pouvez souvent omettre ces lignes.
+        selectedItemColor: theme.bottomNavigationBarTheme.selectedItemColor, // Utilisez le thème
+        unselectedItemColor: theme.bottomNavigationBarTheme.unselectedItemColor, // Utilisez le thème
+        backgroundColor: theme.bottomNavigationBarTheme.backgroundColor, // Utilisez le thème
         elevation: 8,
         items: const [
           BottomNavigationBarItem(
@@ -206,8 +267,8 @@ class _MainNavigationState extends State<MainNavigation> {
                   setState(() {});
                 }
               },
-              backgroundColor: AppColors.primary,
-              foregroundColor: AppColors.textOnPrimary,
+              backgroundColor: theme.primaryColor, // Adapté au thème
+              foregroundColor: theme.colorScheme.onPrimary, // Adapté au thème
               child: const Icon(Icons.add_rounded),
             )
           : null,
